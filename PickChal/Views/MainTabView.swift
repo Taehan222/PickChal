@@ -15,30 +15,28 @@ struct ContentView: View {
         animation: .default)
     private var items: FetchedResults<Item>
 
-    
+    @State private var selectedTab = 1
     
     var body: some View {
-        TabView {
-            ChallengeTabView()
-                .tabItem {
-                    Image(systemName: "figure.walk")
-                    Text("Challenges")
-                }
-            StatisticsTabView()
-                .tabItem {
-                    Image(systemName: "chart.bar")
-                    Text("Statistics")
-                }
+        TabView(selection: $selectedTab) {
             RecommendationTabView()
                 .tabItem {
                     Image(systemName: "lightbulb")
                     Text("Recommend")
                 }
+                .tag(0)
+            HomeTabView()
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+                .tag(1)
             SettingsTabView()
                 .tabItem {
                     Image(systemName: "gearshape")
                     Text("Settings")
                 }
+                .tag(2)
         }
         .accentColor(Theme.Colors.primary)
         .background(Theme.Colors.background)
