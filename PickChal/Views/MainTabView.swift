@@ -33,8 +33,8 @@ struct ContentView: View {
                 .tag(1)
             SettingsTabView()
                 .tabItem {
-                    Image(systemName: "gearshape")
-                    Text("Settings")
+                    Image(systemName: "person.crop.circle")
+                    Text("MY")
                 }
                 .tag(2)
         }
