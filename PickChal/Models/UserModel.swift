@@ -7,23 +7,52 @@
 
 import Foundation
 
+// MARK: UserProfile Model
 struct UserModel {
-    var id: String
-    var age: String
-    var personality: String
+    var year: Int
     var mbti: MBTIType
-    var interests: [String]
+    var interests: [InterestType]
+    var priority: ChallengePriority
+    var routineDifficulty: RoutineDifficulty
+    var goalDescription: String
 }
 
-enum MBTIType: String, CaseIterable, Codable, Identifiable {
-    case istj, istp, infj, infp
-    case estj, estp, enfj, enfp
-    case intj, intp, entj, entp
-    case isfj, isfp, esfj, esfp
+// MARK: MBTI
+enum MBTIType: String, CaseIterable, Identifiable {
+    case ENFP, ENFJ, ENTP, ENTJ
+    case ESFP, ESFJ, ESTP, ESTJ
+    case INFP, INFJ, INTP, INTJ
+    case ISFP, ISFJ, ISTP, ISTJ
 
-    var id: String { rawValue.uppercased() }
+    var id: String { self.rawValue }
+}
 
-    var displayName: String {
-        rawValue.uppercased()
-    }
+// MARK: 관심사
+enum InterestType: String, CaseIterable, Identifiable {
+    case 운동
+    case 독서
+    case 공부
+    case 자기계발
+
+    var id: String { self.rawValue }
+}
+
+// MARK: 챌린지로 얻고 싶은 것
+enum ChallengePriority: String, CaseIterable, Identifiable {
+    case 시간관리
+    case 마음의여유
+    case 건강
+    case 동기부여
+    case 시험준비
+
+    var id: String { self.rawValue }
+}
+
+// MARK: 챌린지 난이도
+enum RoutineDifficulty: String, CaseIterable, Identifiable {
+    case tenMinutes = "10분 루틴"
+    case thirtyMinutes = "30분 루틴"
+    case oneHour = "1시간 루틴"
+
+    var id: String { self.rawValue }
 }
