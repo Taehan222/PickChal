@@ -64,6 +64,7 @@ struct ChallengeModel: Identifiable {
     var subtitle: String
     var totalCount: Int
     var completedCount: Int
+    var date: Date
 }
 
 // MARK: 임시 챌린지 추천 모델

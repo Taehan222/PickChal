@@ -51,7 +51,13 @@ struct CoreDataManager {
         user.goal = input.goalDescription
         user.createdAt = Date()
 
+        saveUserInterests(input.interests, for: user)
+        
         saveContext()
+
+        if let savedUser = fetchUserProfileEntity() {
+            saveUserInterests(input.interests, for: savedUser)
+        }
     }
 
     // MARK: 사용자 정보 불러오기
@@ -60,11 +66,13 @@ struct CoreDataManager {
             print("사용자 정보가 없습니다.")
             return nil
         }
+        let interestEntities = fetchUserInterests()
+        let interestTypes = interestEntities.compactMap { InterestType(rawValue: $0.interestName ?? "") }
 
         return UserModel(
             year: Int(entity.year),
             mbti: MBTIType(rawValue: entity.mbti ?? "") ?? .INTJ,
-            interests: [],
+            interests: interestTypes,
             priority: ChallengePriority(rawValue: entity.priority ?? "") ?? .건강,
             routineDifficulty: RoutineDifficulty(rawValue: entity.difficulty ?? "") ?? .tenMinutes,
             goalDescription: entity.goal ?? ""
@@ -99,7 +107,7 @@ struct CoreDataManager {
         user.goal = input.goalDescription
         
         clearUserInterests()
-        saveUserInterests(input.interests)
+        saveUserInterests(input.interests, for: user)
         
         saveContext()
     }
@@ -107,20 +115,16 @@ struct CoreDataManager {
 // MARK: 사용자 관심사 저장, 불러오기, 삭제
     
     // MARK: 사용자 관심사 저장
-    func saveUserInterests(_ interests: [InterestType]) {
+    func saveUserInterests(_ interests: [InterestType], for user: UserProfile) {
         let context = container.viewContext
-        
-        guard let user = fetchUserProfileEntity() else {
-            print("사용자 정보 없음 관심사 저장 실패")
-            return
-        }
-        
+
         for interest in interests {
             let interestEntity = Interest(context: context)
             interestEntity.id = UUID()
             interestEntity.interestName = interest.rawValue
             interestEntity.user = user
         }
+        saveContext()
     }
     
     // MARK: 사용자 관심사 불러오기
