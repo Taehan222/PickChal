@@ -20,6 +20,6 @@ class DateArrayTransformer: ValueTransformer {
 
     override func reverseTransformedValue(_ value: Any?) -> Any? {
         guard let data = value as? Data else { return nil }
-        return try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? [Date]
+        return try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: data) as? [Date]
     }
 }

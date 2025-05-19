@@ -56,3 +56,20 @@ enum RoutineDifficulty: String, CaseIterable, Identifiable {
 
     var id: String { self.rawValue }
 }
+
+// MARK: 임시 챌린지 모델
+struct ChallengeModel: Identifiable {
+    var id: UUID
+    var title: String
+    var subtitle: String
+    var totalCount: Int
+    var completedCount: Int
+}
+
+// MARK: 임시 챌린지 추천 모델
+struct RecommendationModel: Identifiable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let iconName: String
+}

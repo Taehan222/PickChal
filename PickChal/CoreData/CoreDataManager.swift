@@ -86,6 +86,7 @@ struct CoreDataManager {
     // MARK: 사용자 정보 업데이트
     func updateUserProfile(input: UserModel) {
         let context = container.viewContext
+        let log = Challenge(context: context)
         guard let user = fetchUserProfileEntity() else {
             print("사용자 정보 없음 업데이트 불가")
             return
@@ -156,7 +157,7 @@ struct CoreDataManager {
     func logChallengeCompletion(title: String, date: Date, completed: Bool) {
         let context = container.viewContext
         
-        guard let user = fetchUserProfileEntity() else {
+        guard fetchUserProfileEntity() != nil else {
             print("사용자 정보 없음 챌린지 기록 저장 실패")
             return
         }
