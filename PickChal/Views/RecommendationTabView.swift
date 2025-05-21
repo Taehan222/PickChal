@@ -6,23 +6,62 @@
 //
 
 import SwiftUI
+import ChatGPTSwift
 
 struct RecommendationTabView: View {
-    let recommendations = [
-        RecommendationModel(title: "새로운 걷기 루트", description: "한강변을 따라 산책해보세요", iconName: "map"),
-        RecommendationModel(title: "독서 챌린지", description: "한 달에 두 권 읽기 목표", iconName: "book"),
-        RecommendationModel(title: "코딩 연습", description: "알고리즘 문제 5개 풀기", iconName: "chevron.left.slash.chevron.right")
-    ]
+    @StateObject private var viewModel = RecommendationViewModel()
+    @State private var showCards: [Bool] = []
+
+    private let currentUser = UserModel(
+        year: 3,
+        mbti: .ENFP,
+        interests: [.운동, .공부],
+        priority: .건강,
+        routineDifficulty: .thirtyMinutes,
+        goalDescription: "매일 30분 운동하기"
+    )
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Theme.Spacing.md) {
-                ForEach(recommendations) { rec in
-                    CardView(title: rec.title, subtitle: rec.description, iconName: rec.iconName)
+        NavigationView {
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("추천 로딩 중...")
+                } else if let error = viewModel.errorMessage {
+                    ScrollView {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .padding()
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(Array(viewModel.recommendations.enumerated()), id: \.1.id) { index, rec in
+                                CardView(title: rec.title,
+                                         subtitle: rec.description,
+                                         iconName: rec.iconName)
+                                    .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
+                                    .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
+                                    .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
+                            }
+                        }
+                        .padding()
+                    }
                 }
             }
-            .padding(.top, Theme.Spacing.md)
+            .navigationTitle("챌린지 추천")
+            .task {
+                await viewModel.load(user: currentUser)
+                showCards = Array(repeating: false, count: viewModel.recommendations.count)
+                for i in showCards.indices {
+                    try? await Task.sleep(nanoseconds: 200_000_000)
+                    showCards[i] = true
+                }
+            }
         }
-        .background(Theme.Colors.background)
+        .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
     }
+}
+
+#Preview {
+    RecommendationTabView()
 }
