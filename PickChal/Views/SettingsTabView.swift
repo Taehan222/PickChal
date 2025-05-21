@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import Foundation
 
 struct DummyData {
     static let user = UserModel(
@@ -11,11 +12,19 @@ struct DummyData {
         goalDescription: "마음의 평화와 시간 관리 능력 향상"
     )
 
+    // 전체 챌린지 (진행 중 + 완료 포함)
     static let challenges: [ChallengeModel] = [
-        ChallengeModel(id: UUID(), title: "기상 7시 챌린지", subtitle: "하루를 일찍 시작해보자!", totalCount: 14, completedCount: 10, date: Date()),
-        ChallengeModel(id: UUID(), title: "독서 30분", subtitle: "하루 30분 책 읽기", totalCount: 10, completedCount: 7, date: Date())
+        ChallengeModel(id: UUID(), title: "기상 7시 챌린지", subtitle: "하루를 일찍 시작해보자!", totalCount: 14, completedCount: 14, date: Date()), // 완료
+        ChallengeModel(id: UUID(), title: "독서 30분", subtitle: "하루 30분 책 읽기", totalCount: 10, completedCount: 10, date: Date()), // 완료
+        ChallengeModel(id: UUID(), title: "물 2L 마시기", subtitle: "매일 물 충분히 마시기", totalCount: 7, completedCount: 4, date: Date()) // 진행 중
     ]
+
+    //완료된 챌린지만 필터링
+    static let completedChallenges: [ChallengeModel] = challenges.filter {
+        $0.completedCount >= $0.totalCount
+    }
 }
+
 
 
 struct SettingsTabView: View {
