@@ -12,8 +12,7 @@ struct InstagramSharer {
 
         let pasteboardItems: [[String: Any]] = [[
             "com.instagram.sharedSticker.backgroundImage": backgroundData,
-            "com.instagram.sharedSticker.stickerImage": stickerData,
-            "com.instagram.sharedSticker.contentURL": link
+            "com.instagram.sharedSticker.stickerImage": stickerData
         ]]
 
         let options = [UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(300)]
