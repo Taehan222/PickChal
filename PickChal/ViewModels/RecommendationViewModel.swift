@@ -7,7 +7,7 @@
 
 import Foundation
 
-@MainActor
+@MainActor //////
 class RecommendationViewModel: ObservableObject {
     @Published var recommendations: [RecommendationModel] = []
     @Published var isLoading = false
@@ -34,7 +34,8 @@ class RecommendationViewModel: ObservableObject {
             let recs = try JSONDecoder().decode([RecommendationModel].self, from: data)
             recommendations = recs
         } catch {
-            errorMessage = "추천 불러오기 실패: \(error.localizedDescription)\n응답: \(error.localizedDescription)"
+            errorMessage = "불러오기 실패: \(error.localizedDescription)"
+            // 
         }
         isLoading = false
     }

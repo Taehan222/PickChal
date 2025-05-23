@@ -15,7 +15,7 @@ struct RecommendationTabView: View {
     private let currentUser = UserModel(
         year: 3,
         mbti: .ENFP,
-        interests: [.운동, .공부],
+        interests: [.운동, .공부], // 나중에 수정 예정
         priority: .건강,
         routineDifficulty: .thirtyMinutes,
         goalDescription: "매일 30분 운동하기"
@@ -45,6 +45,7 @@ struct RecommendationTabView: View {
                             }
                         }
                         .padding()
+                        //Lazy VStack
                     }
                 }
             }
@@ -53,7 +54,7 @@ struct RecommendationTabView: View {
                 await viewModel.load(user: currentUser)
                 showCards = Array(repeating: false, count: viewModel.recommendations.count)
                 for i in showCards.indices {
-                    try? await Task.sleep(nanoseconds: 200_000_000)
+                    try? await Task.sleep(nanoseconds: 200_000_000) // 0.2초
                     showCards[i] = true
                 }
             }

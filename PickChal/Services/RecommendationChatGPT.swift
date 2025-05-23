@@ -19,7 +19,6 @@ class RecommendationChatGPT {
         let dict: [String: Any] = [
             "year": user.year,
             "mbti": user.mbti.rawValue,
-            "interests": user.interests.map { $0.rawValue },
             "priority": user.priority.rawValue,
             "routineDifficulty": user.routineDifficulty.rawValue,
             "goalDescription": user.goalDescription
@@ -30,7 +29,9 @@ class RecommendationChatGPT {
 
     func recommend(user: UserModel) async throws -> String {
         let userJSON = try encodeUser(user)
-        let prompt = "사용자 정보: \(userJSON)\n위 정보를 바탕으로 일일 챌린지 3개를 title, description, iconName 필드를 가진 JSON 배열로 응답해주세요. JSON 배열 외 다른 텍스트는 포함하지 말아주세요."
+        let prompt = "사용자정보: \(userJSON)\n이걸 바탕으로 일일챌린지 3개를 title,description,iconName 필드를 가진 JSON 배열로 응답해주고 JSON 배열 외 다른 텍스트는 포함하지 말아줘"
         return try await api.sendMessage(text: prompt)
     }
 }
+
+//"{\"year\":user.year,\"mbti\":user.mbti.rawValue,\"interests\":~~~}"
