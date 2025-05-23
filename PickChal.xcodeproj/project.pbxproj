@@ -8,15 +8,30 @@
 
 /* Begin PBXBuildFile section */
 		55568AC32DDB0BCD00E9940E /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = 55568AC22DDB0BCD00E9940E /* FSCalendar */; };
+		9A90060B2DDC0F610064A778 /* ChatGPTSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9A90060A2DDC0F610064A778 /* ChatGPTSwift */; };
+		9A90060D2DDC0F610064A778 /* SampleApp in Frameworks */ = {isa = PBXBuildFile; productRef = 9A90060C2DDC0F610064A778 /* SampleApp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9A9004D42DD6BECA0064A778 /* PickChal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PickChal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9A9006172DDC14EC0064A778 /* Exceptions for "PickChal" folder in "PickChal" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9A9004D32DD6BECA0064A778 /* PickChal */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9A9004D62DD6BECA0064A778 /* PickChal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9A9006172DDC14EC0064A778 /* Exceptions for "PickChal" folder in "PickChal" target */,
+			);
 			path = PickChal;
 			sourceTree = "<group>";
 		};
@@ -27,6 +42,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A90060D2DDC0F610064A778 /* SampleApp in Frameworks */,
+				9A90060B2DDC0F610064A778 /* ChatGPTSwift in Frameworks */,
 				55568AC32DDB0BCD00E9940E /* FSCalendar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +88,8 @@
 			name = PickChal;
 			packageProductDependencies = (
 				55568AC22DDB0BCD00E9940E /* FSCalendar */,
+				9A90060A2DDC0F610064A778 /* ChatGPTSwift */,
+				9A90060C2DDC0F610064A778 /* SampleApp */,
 			);
 			productName = PickChal;
 			productReference = 9A9004D42DD6BECA0064A778 /* PickChal.app */;
@@ -102,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				55568AC12DDB0BCD00E9940E /* XCRemoteSwiftPackageReference "FSCalendar" */,
+				9A9006092DDC0F610064A778 /* XCRemoteSwiftPackageReference "ChatGPTSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9A9004D52DD6BECA0064A778 /* Products */;
@@ -265,6 +285,7 @@
 				DEVELOPMENT_TEAM = 9XFP6N5QCS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PickChal/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -293,6 +314,7 @@
 				DEVELOPMENT_TEAM = 9XFP6N5QCS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PickChal/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -343,6 +365,14 @@
 				minimumVersion = 2.8.4;
 			};
 		};
+		9A9006092DDC0F610064A778 /* XCRemoteSwiftPackageReference "ChatGPTSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/alfianlosari/ChatGPTSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -350,6 +380,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 55568AC12DDB0BCD00E9940E /* XCRemoteSwiftPackageReference "FSCalendar" */;
 			productName = FSCalendar;
+		};
+		9A90060A2DDC0F610064A778 /* ChatGPTSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9A9006092DDC0F610064A778 /* XCRemoteSwiftPackageReference "ChatGPTSwift" */;
+			productName = ChatGPTSwift;
+		};
+		9A90060C2DDC0F610064A778 /* SampleApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9A9006092DDC0F610064A778 /* XCRemoteSwiftPackageReference "ChatGPTSwift" */;
+			productName = SampleApp;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

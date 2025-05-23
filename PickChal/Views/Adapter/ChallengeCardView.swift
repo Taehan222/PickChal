@@ -21,7 +21,7 @@ struct ChallengeCardView: View {
             Text(subtitle)
                 .font(.system(size: 14))
                 .foregroundColor(Theme.Colors.text)
-
+            
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: Theme.Spacing.xs)
                     .frame(height: 6)
