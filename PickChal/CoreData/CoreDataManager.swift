@@ -2,202 +2,131 @@
 //  CoreDataManager.swift
 //  PickChal
 //
-//  Created by 조수원 on 5/19/25.
+//  Created by 조수원 on 5/24/25.
 //
 
 import Foundation
 import CoreData
 
-struct CoreDataManager {
+class CoreDataManager {
     static let shared = CoreDataManager()
     
     let container: NSPersistentContainer
+    private var context: NSManagedObjectContext { container.viewContext }
     
-    init() {
+    private init() {
         container = NSPersistentContainer(name: "PickChal")
-        container.loadPersistentStores { (storeDescription, error)in
+        container.loadPersistentStores { description, error in
             if let error = error as NSError? {
-                fatalError("CoreData 로딩 실패: \(error.localizedDescription), \(error.userInfo)")
+                fatalError("CoreData 로딩 실패: \(error), \(error.userInfo)")
             }
         }
     }
     
-    // MARK: context에 변경 사항이 생기면 자동 저장
-    func saveContext() {
-        let context = CoreDataManager.shared.container.viewContext
+    private func saveDate() throws {
         if context.hasChanges {
-            do {
-                try context.save()
-                print("CoreData 저장 완료")
-            } catch {
-                let nserror = error as NSError
-                fatalError("CoreData 저장 실패: \(nserror), \(nserror.userInfo)")
-            }
+            try context.save()
         }
     }
+
+// MARK: 사용자 정보
     
-// MARK: 사용자 정보 저장, 불러오기, 업데이트
-    
-    // MARK: 사용자 정보 저장
-    func saveUserProfile(input: UserModel) {
-        let context = CoreDataManager.shared.container.viewContext
-        
+    // 사용자 정보 저장
+    func saveUserProfile(input: UserModel) throws {
         let user = UserProfile(context: context)
         user.id = UUID()
         user.year = Int16(input.year)
         user.mbti = input.mbti.rawValue
-        user.priority = input.priority.rawValue
-        user.difficulty = input.routineDifficulty.rawValue
-        user.goal = input.goalDescription
-        user.createdAt = Date()
-
-        saveUserInterests(input.interests, for: user)
-        
-        saveContext()
-
-        if let savedUser = fetchUserProfileEntity() {
-            saveUserInterests(input.interests, for: savedUser)
-        }
-    }
-
-    // MARK: 사용자 정보 불러오기
-    func fetchUserProfile() -> UserModel? {
-        guard let entity = fetchUserProfileEntity() else {
-            print("사용자 정보가 없습니다.")
-            return nil
-        }
-        let interestEntities = fetchUserInterests()
-        let interestTypes = interestEntities.compactMap { InterestType(rawValue: $0.interestName ?? "") }
-
-        return UserModel(
-            year: Int(entity.year),
-            mbti: MBTIType(rawValue: entity.mbti ?? "") ?? .INTJ,
-            interests: interestTypes,
-            priority: ChallengePriority(rawValue: entity.priority ?? "") ?? .건강,
-            routineDifficulty: RoutineDifficulty(rawValue: entity.difficulty ?? "") ?? .tenMinutes,
-            goalDescription: entity.goal ?? ""
-        )
+        user.goal = input.goal
+        try saveDate()
     }
     
-    // MARK: 사용자 정보 조회
-    func fetchUserProfileEntity() -> UserProfile? {
-        let context = CoreDataManager.shared.container.viewContext
+    // 사용자 정보 불러오기
+    func fetchUserProfile() throws -> UserProfile? {
         let request: NSFetchRequest<UserProfile> = UserProfile.fetchRequest()
-            do {
-                return try context.fetch(request).first
-            } catch {
-                print("사용자 정보 불러오기 실패: \(error.localizedDescription)")
-                return nil
-            }
-        }
+        return try context.fetch(request).first
+    }
     
-    // MARK: 사용자 정보 업데이트
-    func updateUserProfile(input: UserModel) {
-        let context = container.viewContext
-        let log = Challenge(context: context)
-        guard let user = fetchUserProfileEntity() else {
-            print("사용자 정보 없음 업데이트 불가")
-            return
-        }
-        
-        user.id = UUID()
+    // 사용자 정보 업데이트
+    func updateUserProfile(input: UserModel) throws {
+        guard let user = try fetchUserProfile() else { return }
+        user.year = Int16(input.year)
         user.mbti = input.mbti.rawValue
-        user.priority = input.priority.rawValue
-        user.difficulty = input.routineDifficulty.rawValue
-        user.goal = input.goalDescription
-        
-        clearUserInterests()
-        saveUserInterests(input.interests, for: user)
-        
-        saveContext()
+        user.goal = input.goal
+        try saveDate()
     }
     
-// MARK: 사용자 관심사 저장, 불러오기, 삭제
+// MARK: 챌린지
     
-    // MARK: 사용자 관심사 저장
-    func saveUserInterests(_ interests: [InterestType], for user: UserProfile) {
-        let context = container.viewContext
-
-        for interest in interests {
-            let interestEntity = Interest(context: context)
-            interestEntity.id = UUID()
-            interestEntity.interestName = interest.rawValue
-            interestEntity.user = user
-        }
-        saveContext()
+    // 챌린지 저장
+    func saveChallenge(for user: UserProfile, challenge: ChallengeModel) throws {
+        let save = Challenge(context: context)
+        save.id = challenge.id
+        save.title = challenge.title
+        save.startDate = challenge.startDate
+        save.endDate = challenge.endDate
+        save.totalCount = Int16(challenge.totalCount)
+        save.createdAt = challenge.createdAt
+        save.alarmTime = challenge.alarmTime
+        save.user = user
+        try saveDate()
     }
     
-    // MARK: 사용자 관심사 불러오기
-    func fetchUserInterests() -> [Interest] {
-        let context = container.viewContext
-        
-        guard let user = fetchUserProfileEntity() else {
-            print("사용자 정보 없음 관심사 불러오기 실패")
-            return []
-        }
-        let request: NSFetchRequest<Interest> = Interest.fetchRequest()
+    // 챌린지 불러오기
+    func fetchChallenge(for user: UserProfile) throws -> [Challenge] {
+        let request: NSFetchRequest<Challenge> = Challenge.fetchRequest()
         request.predicate = NSPredicate(format: "user == %@", user)
-        
-        do {
-            return try context.fetch(request)
-        } catch {
-            print("관심사 불러오기 실패: \(error.localizedDescription)")
-            return []
-        }
+        return try context.fetch(request)
     }
     
-    // MARK: 사용자 관심사 삭제
-    func clearUserInterests() {
-        let context = container.viewContext
-        let interests = fetchUserInterests()
-        for interest in interests {
-            context.delete(interest)
-        }
+    // 챌린지 업데이트
+    func updateChallenge(for challenge: Challenge, with model: ChallengeModel) throws {
+        challenge.title = model.title
+        challenge.startDate = model.startDate
+        challenge.endDate = model.endDate
+        challenge.totalCount = Int16(model.totalCount)
+        challenge.alarmTime = model.alarmTime
+        try saveDate()
     }
     
-// MARK: 챌린지 기록 저장, 불러오기, 삭제
+    // 챌린지 삭제
+    func deleteChallenge(for challenge: Challenge) throws {
+        context.delete(challenge)
+        try saveDate()
+    }
     
-    // MARK: 챌린지 기록 저장
-    func logChallengeCompletion(title: String, date: Date, completed: Bool) {
-        let context = container.viewContext
-        
-        guard fetchUserProfileEntity() != nil else {
-            print("사용자 정보 없음 챌린지 기록 저장 실패")
-            return
-        }
-        
+// MARK: 날짜별 챌린지 기록
+    
+    // 챌린지 기록 저장
+    func logChallenge(for challenge: Challenge, on date: Date, completed: Bool) throws {
         let log = ChallengeLog(context: context)
         log.id = UUID()
-        log.challengeTitle = title
         log.date = date
         log.completed = completed
-        
-        saveContext()
+        log.challenge = challenge
+        try saveDate()
     }
     
-    // MARK: 챌린지 기록 불러오기
-    func fetchLogs(for date: Date) -> [ChallengeLog] {
-        let context = container.viewContext
+    // 특정 챌린지에 대한 전체 기록 불러오기
+    func fetchLogs(for challenge: Challenge) throws -> [ChallengeLog] {
         let request: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
-        
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
-        
-        request.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
-        
-        do {
-            return try context.fetch(request)
-        } catch {
-            print("챌린지 로그 불러오기 실패: \(error.localizedDescription)")
-            return []
-        }
+        request.predicate = NSPredicate(format: "challenge == %@", challenge)
+        return try context.fetch(request)
     }
     
-    // MARK: 챌린지 기록 삭제하기
-    func deleteChallengeLog(_ log: ChallengeLog) {
-        let context = container.viewContext
+    // 특정 날짜의 전체 챌린지 기록 불러오기
+    func fetchLogs(for date: Date) throws -> [ChallengeLog] {
+        let request: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start) ?? date
+        request.predicate = NSPredicate(format: "date >= %@ AND date < %@", start as NSDate, end as NSDate)
+        return try context.fetch(request)
+    }
+    
+    // 챌린지 삭제
+    func deleteLog(log: ChallengeLog) throws {
         context.delete(log)
-        saveContext()
+        try saveDate()
     }
 }
