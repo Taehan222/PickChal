@@ -15,7 +15,7 @@ struct ChallengeDetailView: View {
             Text(challenge.title)
                 .font(.largeTitle)
                 .foregroundColor(Theme.Colors.primary)
-            Text(challenge.subtitle)
+            Text(challenge.subTitle)
                 .font(.body)
             
         }

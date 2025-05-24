@@ -13,7 +13,7 @@ struct ChallengeCompletedListView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(challenge.title)
                             .font(.headline)
-                        Text(challenge.subtitle)
+                        Text(challenge.subTitle)
                             .font(.subheadline)
                             .foregroundColor(.gray)
 
@@ -32,7 +32,7 @@ struct ChallengeCompletedListView: View {
         .navigationTitle("완료한 챌린지")
     }
 
-    //공유 로직
+    // 공유 로직
     func shareToInstagram(for challenge: ChallengeModel) {
         let background = UIImage.imageWithText(
             text: "오늘의 챌린지 완료 🎉",
@@ -47,20 +47,20 @@ struct ChallengeCompletedListView: View {
             backgroundImage: background,
             stickerImage: sticker,
             appID: "1230529985269243"
-            
         )
     }
 }
+import UIKit
+
 extension UIImage {
+    // 배경 이미지에 텍스트 삽입
     static func imageWithText(text: String, size: CGSize, backgroundColor: UIColor, textColor: UIColor) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
 
         return renderer.image { context in
-         
             backgroundColor.setFill()
             context.fill(CGRect(origin: .zero, size: size))
 
-            
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = .center
 
@@ -74,17 +74,17 @@ extension UIImage {
             text.draw(in: textRect, withAttributes: attributes)
         }
     }
+
+    // 챌린지 완료 스티커
     static func challengeSticker(text: String, size: CGSize = CGSize(width: 250, height: 60)) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
 
         return renderer.image { context in
-            //배경 색
             UIColor.systemOrange.setFill()
             let rect = CGRect(origin: .zero, size: size)
             let path = UIBezierPath(roundedRect: rect, cornerRadius: 15)
             path.fill()
 
-            //텍스트 스타일
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = .center
 
@@ -94,10 +94,8 @@ extension UIImage {
                 .paragraphStyle: paragraphStyle
             ]
 
-            //텍스트 위치
             let textRect = CGRect(x: 0, y: size.height / 2 - 14, width: size.width, height: 28)
             text.draw(in: textRect, withAttributes: attributes)
         }
     }
 }
-
