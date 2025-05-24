@@ -11,7 +11,7 @@ import Foundation
 struct UserModel {
     var year: Int
     var mbti: MBTIType
-    var priority: ChallengePriority
+    var priority: ChallengeCategory
     var goal: String
 }
 
@@ -25,8 +25,8 @@ enum MBTIType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-enum ChallengePriority: String, CaseIterable, Identifiable {
-    case 시간관리, 마음의여유, 건강, 동기부여, 시험준비
+enum ChallengeCategory: String, CaseIterable, Identifiable {
+    case 운동, 독서, 공부, 자기계발, 시간관리
     var id: String { rawValue }
 }
 
@@ -34,6 +34,7 @@ enum ChallengePriority: String, CaseIterable, Identifiable {
 struct ChallengeModel: Identifiable {
     var id: UUID
     var title: String
+    var category: String
     var startDate: Date
     var endDate: Date
     var totalCount: Int

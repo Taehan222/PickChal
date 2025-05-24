@@ -24,6 +24,7 @@ class ChallengeViewModel: ObservableObject {
             ChallengeModel(
                 id: UUID(),
                 title: "챌린지 1",
+                category: "공부",
                 startDate: Date(),
                 endDate: Calendar.current.date(byAdding: .day, value: 30, to: Date())!,
                 totalCount: 30,
@@ -33,6 +34,7 @@ class ChallengeViewModel: ObservableObject {
             ChallengeModel(
                 id: UUID(),
                 title: "챌린지 2",
+                category: "운동",
                 startDate: yesterday,
                 endDate: Calendar.current.date(byAdding: .day, value: 30, to: yesterday)!,
                 totalCount: 7,
@@ -42,6 +44,7 @@ class ChallengeViewModel: ObservableObject {
             ChallengeModel(
                 id: UUID(),
                 title: "챌린지 3",
+                category: "자기계발",
                 startDate: twoDaysAgo,
                 endDate: Calendar.current.date(byAdding: .day, value: 30, to: twoDaysAgo)!,
                 totalCount: 30,
@@ -51,6 +54,7 @@ class ChallengeViewModel: ObservableObject {
             ChallengeModel(
                 id: UUID(),
                 title: "챌린지 4",
+                category: "독서",
                 startDate: twoDaysAgo,
                 endDate: Calendar.current.date(byAdding: .day, value: 30, to: twoDaysAgo)!,
                 totalCount: 30,
@@ -60,6 +64,7 @@ class ChallengeViewModel: ObservableObject {
             ChallengeModel(
                 id: UUID(),
                 title: "챌린지 5",
+                category: "시간관리",
                 startDate: Date(),
                 endDate: Calendar.current.date(byAdding: .day, value: 30, to: Date())!,
                 totalCount: 15,
