@@ -34,6 +34,8 @@ enum ChallengeCategory: String, CaseIterable, Identifiable {
 struct ChallengeModel: Identifiable {
     var id: UUID
     var title: String
+    var subTitle: String
+    var description: String
     var category: String
     var startDate: Date
     var endDate: Date
