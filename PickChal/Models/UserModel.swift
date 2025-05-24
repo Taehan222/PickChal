@@ -39,6 +39,7 @@ struct ChallengeModel: Identifiable {
     var totalCount: Int
     var createdAt: Date
     var alarmTime: Date
+    var isCompleted: Bool = false 
 }
 
 // MARK: 챌린지 로그 모델
