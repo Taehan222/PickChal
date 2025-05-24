@@ -15,10 +15,8 @@ struct RecommendationTabView: View {
     private let currentUser = UserModel(
         year: 3,
         mbti: .ENFP,
-        interests: [.운동, .공부], // 나중에 수정 예정
-        priority: .건강,
-        routineDifficulty: .thirtyMinutes,
-        goalDescription: "매일 30분 운동하기"
+        priority: .운동,
+        goal: "매일 30분 운동하기"
     )
 
     var body: some View {

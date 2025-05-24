@@ -20,8 +20,7 @@ class RecommendationChatGPT {
             "year": user.year,
             "mbti": user.mbti.rawValue,
             "priority": user.priority.rawValue,
-            "routineDifficulty": user.routineDifficulty.rawValue,
-            "goalDescription": user.goalDescription
+            "goalDescription": user.goal
         ]
         let data = try JSONSerialization.data(withJSONObject: dict, options: [])
         return String(data: data, encoding: .utf8) ?? "{}"
