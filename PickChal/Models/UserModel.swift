@@ -35,7 +35,7 @@ struct ChallengeModel: Identifiable {
     var id: UUID
     var title: String
     var subTitle: String
-    var description: String
+    var descriptionText: String
     var category: String
     var startDate: Date
     var endDate: Date

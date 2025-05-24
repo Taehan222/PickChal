@@ -63,6 +63,9 @@ class CoreDataManager {
         let save = Challenge(context: context)
         save.id = challenge.id
         save.title = challenge.title
+        save.subTitle = challenge.subTitle
+        save.descriptionText = challenge.descriptionText
+        save.category = challenge.category
         save.startDate = challenge.startDate
         save.endDate = challenge.endDate
         save.totalCount = Int16(challenge.totalCount)
@@ -82,6 +85,9 @@ class CoreDataManager {
     // 챌린지 업데이트
     func updateChallenge(for challenge: Challenge, with model: ChallengeModel) throws {
         challenge.title = model.title
+        challenge.subTitle = model.subTitle
+        challenge.descriptionText = model.descriptionText
+        challenge.category = model.category
         challenge.startDate = model.startDate
         challenge.endDate = model.endDate
         challenge.totalCount = Int16(model.totalCount)
