@@ -4,6 +4,10 @@ struct HomeTabView: View {
     @State private var selectedDate = Date()
     @ObservedObject var viewModel = ChallengeViewModel()
     @StateObject private var tabViewModel = HomeTabViewModel()
+    @FetchRequest(
+        entity: Challenge.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Challenge.createdAt, ascending: true)]
+    ) private var challenges: FetchedResults<Challenge>
 
     var body: some View {
         VStack(spacing: 15) {
@@ -14,22 +18,22 @@ struct HomeTabView: View {
                 VStack(spacing: 16) {
                     section(
                         title: "진행중인 챌린지",
-                        challenges: viewModel.goingChallenges,
+                        challenges: challenges.filter { !$0.isCompleted },
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
                         iconColor: .blue
-                    ) { id in
-                        tabViewModel.showCompletionAlert(for: id)
+                    ) { challenge in
+                        tabViewModel.showCompletionAlert(for: challenge.id ?? UUID())
                     }
 
                     section(
                         title: "완료된 챌린지",
-                        challenges: viewModel.completedChallenges,
+                        challenges: challenges.filter { $0.isCompleted },
                         emptyMessage: "아직 완료된 챌린지가 없습니다.",
                         icon: "xmark.circle.fill",
                         iconColor: .red
-                    ) { id in
-                        viewModel.goingChallenge(id: id)
+                    ) { challenge in
+                        tabViewModel.reactivateChallenge(challenge: challenge)
                     }
                 }
                 .padding(.top, 8)
@@ -38,43 +42,41 @@ struct HomeTabView: View {
             Spacer()
         }
         .padding(.vertical)
+        // 나중에는 챌린지 title 받아서 알람창 수정 예정
         .alert("챌린지를 완료했나요?", isPresented: $tabViewModel.showAlert) {
             Button("완료") {
-                tabViewModel.completeChallenge(in: viewModel)
+                tabViewModel.completeChallenge()
             }
             Button("아니요", role: .cancel) { }
         }
     }
-    
-    // 챌린지 뷰
+
     func section(
         title: String,
-        challenges: [ChallengeModel],
+        challenges: [Challenge],
         emptyMessage: String,
         icon: String,
         iconColor: Color,
-        action: @escaping (UUID) -> Void
+        action: @escaping (Challenge) -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
                 .padding(.leading)
-            // 챌린지가 없을 때
             if challenges.isEmpty {
                 emptyLabel(text: emptyMessage)
             } else {
-                // 챌린지 카드 리스트
                 LazyVStack(spacing: 8) {
-                    ForEach(challenges) { challenge in
+                    ForEach(challenges, id: \.self) { challenge in
                         challengeCard(challenge: challenge, icon: icon, iconColor: iconColor) {
-                            action(challenge.id)
+                            action(challenge)
                         }
                     }
                 }
             }
         }
     }
-    // 챌린지 없을 때
+
     func emptyLabel(text: String) -> some View {
         HStack {
             Text(text)
@@ -91,19 +93,18 @@ struct HomeTabView: View {
         )
         .padding(.horizontal)
     }
-    
-    // 챌린지 카드 뷰
+
     func challengeCard(
-        challenge: ChallengeModel,
+        challenge: Challenge,
         icon: String,
         iconColor: Color,
         action: @escaping () -> Void
     ) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(challenge.title)
+                Text(challenge.title ?? "제목 없음")
                     .font(.system(size: 18, weight: .bold))
-                Text(challenge.descriptionText)
+                Text(challenge.descriptionText ?? "설명 없음")
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
             }

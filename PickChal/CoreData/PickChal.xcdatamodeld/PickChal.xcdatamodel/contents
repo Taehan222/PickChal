@@ -7,6 +7,7 @@
         <attribute name="descriptionText" optional="YES" attributeType="String"/>
         <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="subTitle" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
@@ -24,6 +25,7 @@
         <attribute name="goal" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="mbti" optional="YES" attributeType="String"/>
+        <attribute name="onboardingCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="year" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="challenges" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Challenge" inverseName="user" inverseEntity="Challenge"/>
     </entity>

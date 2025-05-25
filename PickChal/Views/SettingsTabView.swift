@@ -7,7 +7,8 @@ struct DummyData {
         year: 2001,
         mbti: .INTJ,
         priority: .시간관리,
-        goal: "마음의 평화와 시간 관리 능력 향상"
+        goal: "마음의 평화와 시간 관리 능력 향상",
+        isOnboardingCompleted: true // 모델 변경으로 항목 추가했어요
     )
 
     static let challenges: [ChallengeModel] = [

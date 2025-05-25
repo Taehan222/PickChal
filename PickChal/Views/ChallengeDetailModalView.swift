@@ -11,6 +11,7 @@ struct ChallengeDetailModalView: View {
     var challenge: RecommendationModel
     var onChallenge: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var saveViewModel = ChallengeSaveViewModel() // 챌린지를 coredata에 저장하는 VM
 
     var body: some View {
         VStack(spacing: 24) {
@@ -34,9 +35,7 @@ struct ChallengeDetailModalView: View {
             Spacer()
 
             Button(action: {
-                
-                // 도전하기 버튼 클릭시 처리 코드 여기여기여기
-                
+                saveViewModel.saveChallenge(from: challenge)
                 dismiss()
                 onChallenge()
             }) {

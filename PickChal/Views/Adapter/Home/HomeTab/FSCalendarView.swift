@@ -26,6 +26,7 @@ struct FSCalendarView: UIViewRepresentable {
         calendar.placeholderType = .none
         calendar.appearance.weekdayTextColor = .black
         calendar.appearance.weekdayFont = UIFont.boldSystemFont(ofSize: 14)
+        calendar.appearance.selectionColor = UIColor.systemBlue.withAlphaComponent(0.3)
         return calendar
     }
 

@@ -12,13 +12,11 @@ struct RecommendationTabView: View {
     @StateObject private var viewModel = RecommendationViewModel()
     @State private var showCards: [Bool] = []
     @State private var selectedChallenge: RecommendationModel? = nil
-
-    private let currentUser = UserModel(
-        year: 3,
-        mbti: .ENFP,
-        priority: .운동,
-        goal: "매일 30분 운동하기"
-    )
+    // coredata에서 userprofile 불러오기
+    @FetchRequest(
+        entity: UserProfile.entity(),
+        sortDescriptors: []
+    ) private var profiles: FetchedResults<UserProfile>
 
     var body: some View {
         NavigationView {
@@ -59,14 +57,6 @@ struct RecommendationTabView: View {
                 }
             }
             .navigationTitle("챌린지 추천")
-            .task {
-                await viewModel.load(user: currentUser)
-                showCards = Array(repeating: false, count: viewModel.recommendations.count)
-                for i in showCards.indices {
-                    try? await Task.sleep(nanoseconds: 200_000_000) // 0.2초
-                    showCards[i] = true
-                }
-            }
             .sheet(item: $selectedChallenge) { challenge in
                 ChallengeDetailModalView(challenge: challenge) {
                     if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
@@ -77,8 +67,33 @@ struct RecommendationTabView: View {
                 }
                 .presentationDetents([.medium])
             }
+            .onAppear {
+                loadRecommendations()
+            }
         }
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
+    }
+    // coredata의 사용자 정보로 챌린지 불러오기
+    private func loadRecommendations() {
+        guard let profile = profiles.first else {
+            return
+        }
+        // 사용자 정보 usermodel로 변환
+        let user = UserModel(
+            year: Int(profile.year),
+            mbti: MBTIType(rawValue: profile.mbti ?? "") ?? .INTJ,
+            priority: .운동,
+            goal: profile.goal ?? "",
+            isOnboardingCompleted: profile.onboardingCompleted
+        )
+        Task {
+            await viewModel.load(user: user)
+            showCards = Array(repeating: false, count: viewModel.recommendations.count)
+            for i in showCards.indices {
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                showCards[i] = true
+            }
+        }
     }
 }
 

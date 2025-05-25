@@ -56,6 +56,19 @@ class CoreDataManager {
         try saveDate()
     }
     
+    // 인트로 뷰 완료
+    func onboardingCompleted() throws {
+        guard let user = try fetchUserProfile() else { return }
+        user.onboardingCompleted = true
+        try saveDate()
+    }
+    
+    // 인트로 뷰 완료 여부 확인
+    func isOnboardingCompleted() -> Bool {
+        guard let user = try? fetchUserProfile() else { return false }
+        return user.onboardingCompleted
+    }
+    
 // MARK: 챌린지
     
     // 챌린지 저장

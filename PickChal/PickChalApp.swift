@@ -11,22 +11,39 @@ import SwiftUI
 struct PickChalApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var tabManager = TabSelectionManager.shared
-    
-    init(){
-        NotificationManager.shared.requestPermission()
+    @AppStorage("onboardingCompleted") private var onboardingCompleted = false // 인트로 뷰 완료 여부 저장
+
+    init() {
+        // 앱 시작 시: 알림 뱃지 초기화 및 델리게이트 설정
         NotificationManager.shared.resetBadgeCount()
         NotificationManager.shared.setupDelegate()
     }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, CoreDataManager.shared.container.viewContext)
                 .environmentObject(tabManager)
+                .overlay {
+                    if !onboardingCompleted {
+                        NavigationStack {
+                            OnboardingIntroView(viewModel: OnboardingVM())
+                        }
+                        .transition(.move(edge: .trailing))
+                    }
+                }
+                // 인트로 뷰 완료되면 추천탭으로 자동 이동
+                .onAppear {
+                    if onboardingCompleted {
+                        tabManager.switchToTab(.recommend)
+                    }
+                }
+                // 앱 실행 시 알림 뱃지 초기화
                 .onChange(of: scenePhase) { phase in
-                                    if phase == .active {
-                                        NotificationManager.shared.resetBadgeCount()
-                                    }
-                                }
+                    if phase == .active {
+                        NotificationManager.shared.resetBadgeCount()
+                    }
+                }
         }
     }
 }

@@ -13,6 +13,7 @@ struct UserModel {
     var mbti: MBTIType
     var priority: ChallengeCategory
     var goal: String
+    var isOnboardingCompleted: Bool
 }
 
 // MARK: MBTI
