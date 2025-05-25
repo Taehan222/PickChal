@@ -7,7 +7,7 @@
 
 import Foundation
 
-@MainActor //////
+@MainActor
 class RecommendationViewModel: ObservableObject {
     @Published var recommendations: [RecommendationModel] = []
     @Published var isLoading = false
@@ -27,15 +27,17 @@ class RecommendationViewModel: ObservableObject {
         errorMessage = nil
         do {
             let raw = try await chatService.recommend(user: user)
+            print("ChatGPT응답: " + raw)
+            
             guard let jsonArrayString = extractJSONArray(from: raw),
                   let data = jsonArrayString.data(using: .utf8) else {
                 throw URLError(.cannotParseResponse)
             }
+            
             let recs = try JSONDecoder().decode([RecommendationModel].self, from: data)
             recommendations = recs
         } catch {
             errorMessage = "불러오기 실패: \(error.localizedDescription)"
-            // 
         }
         isLoading = false
     }
