@@ -9,10 +9,10 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @State private var selectedTab = 1
-    
+    @EnvironmentObject var tabManager: TabSelectionManager
+
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $tabManager.selectedTab) {
             RecommendationTabView()
                 .tabItem {
                     Image(systemName: "lightbulb")
@@ -41,4 +41,6 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(TabSelectionManager.shared)
 }
+

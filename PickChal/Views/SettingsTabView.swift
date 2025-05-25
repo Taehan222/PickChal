@@ -139,6 +139,16 @@ struct SettingsTabView: View {
                         Label("다크 모드", systemImage: "moon.stars.fill")
                     }
                 }
+                //테스트용
+                Section(header: Text("알림 테스트")) {
+                    Button {
+                        if let firstChallenge = challenges.first {
+                            NotificationManager.shared.scheduleImmediateTestNotification(for: firstChallenge)
+                        }
+                    } label: {
+                        Label("🔔 테스트 알림 보내기", systemImage: "paperplane")
+                    }
+                }
 
                 // 초기화
                 Section {
