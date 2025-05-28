@@ -1,13 +1,14 @@
 import SwiftUI
+import CoreData
 
 struct HomeTabView: View {
     @State private var selectedDate = Date()
-    @ObservedObject var viewModel = ChallengeViewModel()
     @StateObject private var tabViewModel = HomeTabViewModel()
+
     @FetchRequest(
-        entity: Challenge.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Challenge.createdAt, ascending: true)]
-    ) private var challenges: FetchedResults<Challenge>
+        entity: ChallengeLog.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \ChallengeLog.date, ascending: true)]
+    ) private var logs: FetchedResults<ChallengeLog>
 
     var body: some View {
         VStack(spacing: 15) {
@@ -16,24 +17,27 @@ struct HomeTabView: View {
 
             ScrollView {
                 VStack(spacing: 16) {
+                    let logsForDate = logs.filter { Calendar.current.isDate($0.date ?? Date(), inSameDayAs: selectedDate) }
+
                     section(
                         title: "진행중인 챌린지",
-                        challenges: challenges.filter { !$0.isCompleted },
+                        logs: logsForDate.filter { !$0.completed },
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
-                        iconColor: .blue
-                    ) { challenge in
-                        tabViewModel.showCompletionAlert(for: challenge.id ?? UUID())
+                        iconColor: .blue,
+                        showButton: true
+                    ) { log in
+                        tabViewModel.showCompletionAlert(for: log.id ?? UUID())
                     }
 
                     section(
                         title: "완료된 챌린지",
-                        challenges: challenges.filter { $0.isCompleted },
+                        logs: logsForDate.filter { $0.completed },
                         emptyMessage: "아직 완료된 챌린지가 없습니다.",
                         icon: "xmark.circle.fill",
-                        iconColor: .red
-                    ) { challenge in
-                        tabViewModel.reactivateChallenge(challenge: challenge)
+                        iconColor: .red,
+                        showButton: false
+                    ) { _ in
                     }
                 }
                 .padding(.top, 8)
@@ -42,34 +46,54 @@ struct HomeTabView: View {
             Spacer()
         }
         .padding(.vertical)
-        // 나중에는 챌린지 title 받아서 알람창 수정 예정
         .alert("챌린지를 완료했나요?", isPresented: $tabViewModel.showAlert) {
             Button("완료") {
-                tabViewModel.completeChallenge()
+                if let id = tabViewModel.selectedChallengeID,
+                   let log = logs.first(where: { $0.id == id }),
+                   let challenge = log.challenge {
+                    let context = CoreDataManager.shared.container.viewContext
+                    log.completed = true
+
+                    // challenge의 모든 log가 완료됐는지 확인
+                    let fetchRequest: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "challenge == %@", challenge)
+                    do {
+                        let allLogs = try context.fetch(fetchRequest)
+                        let allCompleted = allLogs.allSatisfy { $0.completed }
+                        challenge.isCompleted = allCompleted
+                        try context.save()
+                        print("챌린지 완료 상태 업데이트됨")
+                    } catch {
+                        print("업데이트 실패: \(error.localizedDescription)")
+                    }
+                }
+                tabViewModel.showAlert = false
             }
             Button("아니요", role: .cancel) { }
         }
     }
 
+    // 공통 섹션 뷰
     func section(
         title: String,
-        challenges: [Challenge],
+        logs: [ChallengeLog],
         emptyMessage: String,
         icon: String,
         iconColor: Color,
-        action: @escaping (Challenge) -> Void
+        showButton: Bool,
+        action: @escaping (ChallengeLog) -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
                 .padding(.leading)
-            if challenges.isEmpty {
+            if logs.isEmpty {
                 emptyLabel(text: emptyMessage)
             } else {
                 LazyVStack(spacing: 8) {
-                    ForEach(challenges, id: \.self) { challenge in
-                        challengeCard(challenge: challenge, icon: icon, iconColor: iconColor) {
-                            action(challenge)
+                    ForEach(logs, id: \.self) { log in
+                        challengeCard(log: log, icon: icon, iconColor: iconColor, showButton: showButton) {
+                            action(log)
                         }
                     }
                 }
@@ -77,6 +101,7 @@ struct HomeTabView: View {
         }
     }
 
+    // 비어있을 때 라벨
     func emptyLabel(text: String) -> some View {
         HStack {
             Text(text)
@@ -94,25 +119,32 @@ struct HomeTabView: View {
         .padding(.horizontal)
     }
 
+    // 챌린지 카드 뷰
     func challengeCard(
-        challenge: Challenge,
+        log: ChallengeLog,
         icon: String,
         iconColor: Color,
+        showButton: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        HStack {
+        let challengeTitle = log.challenge?.title ?? "제목 없음"
+        let logDescription = log.descriptionText ?? "설명 없음"
+
+        return HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(challenge.title ?? "제목 없음")
+                Text(challengeTitle)
                     .font(.system(size: 18, weight: .bold))
-                Text(challenge.descriptionText ?? "설명 없음")
+                Text(logDescription)
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
             }
             Spacer()
-            Button(action: action) {
-                Image(systemName: icon)
-                    .foregroundColor(iconColor)
-                    .font(.title2)
+            if showButton {
+                Button(action: action) {
+                    Image(systemName: icon)
+                        .foregroundColor(iconColor)
+                        .font(.title2)
+                }
             }
         }
         .padding()

@@ -40,15 +40,17 @@ struct RecommendationTabView: View {
                         } else {
                             VStack(spacing: 16) {
                                 ForEach(Array(viewModel.recommendations.enumerated()), id: \.1.id) { index, rec in
-                                    CardView(title: rec.title,
-                                             subtitle: rec.description,
-                                             iconName: rec.iconName)
-                                        .onTapGesture {
-                                            selectedChallenge = rec
-                                        }
-                                        .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
-                                        .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
-                                        .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
+                                    CardView(
+                                        title: rec.title,
+                                        subtitle: rec.descriptionText,
+                                        iconName: rec.iconName
+                                    )
+                                    .onTapGesture {
+                                        selectedChallenge = rec
+                                    }
+                                    .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
+                                    .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
+                                    .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
                                 }
                             }
                             .padding()

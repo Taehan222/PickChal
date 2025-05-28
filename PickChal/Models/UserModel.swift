@@ -34,13 +34,13 @@ enum ChallengeCategory: String, CaseIterable, Identifiable {
 // MARK: 챌린지 모델
 struct ChallengeModel: Identifiable {
     var id: UUID
-    var title: String
-    var subTitle: String
-    var descriptionText: String
-    var category: String
-    var startDate: Date
-    var endDate: Date
-    var totalCount: Int
+    var title: String // 제목
+    var subTitle: String // 부제목
+    var descriptionText: String // 챌린지 설명
+    var category: String // 카테고리
+    var startDate: Date // 시작한 날
+    var endDate: Date // 끝나는 날
+    var totalCount: Int // 
     var createdAt: Date
     var alarmTime: Date
     var isCompleted: Bool = false 
@@ -52,31 +52,38 @@ struct ChallengeLogModel: Identifiable {
     var date: Date
     var completed: Bool
     var challengeID: UUID
+    var descriptionText: String
 }
 
 // MARK: 챌린지 추천 모델
 struct RecommendationModel: Identifiable, Decodable {
     let id: UUID
     let title: String
-    let description: String
+    let descriptionText: String   // 챌린지 설명 텍스트 (설명을 "/"로 구분)
     let iconName: String
+    let category: String          // 챌린지 카테고리
+    let alarmTime: Date?          // 알람 시간 추천
 
     private enum CodingKeys: String, CodingKey {
-        case title, description, iconName, id
+        case title, descriptionText, iconName, id, category, alarmTime
     }
 
-    init(id: UUID = UUID(), title: String, description: String, iconName: String) {
+    init(id: UUID = UUID(), title: String, descriptionText: String, iconName: String, category: String, alarmTime: Date? = nil) {
         self.id = id
         self.title = title
-        self.description = description
+        self.descriptionText = descriptionText
         self.iconName = iconName
+        self.category = category
+        self.alarmTime = alarmTime
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.title = try c.decode(String.self, forKey: .title)
-        self.description = try c.decode(String.self, forKey: .description)
+        self.descriptionText = try c.decode(String.self, forKey: .descriptionText)
         self.iconName = try c.decode(String.self, forKey: .iconName)
         self.id = (try? c.decode(UUID.self, forKey: .id)) ?? UUID()
+        self.category = try c.decode(String.self, forKey: .category)
+        self.alarmTime = try? c.decode(Date.self, forKey: .alarmTime)
     }
 }
