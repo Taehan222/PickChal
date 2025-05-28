@@ -59,10 +59,10 @@ struct ChallengeLogModel: Identifiable {
 struct RecommendationModel: Identifiable, Decodable {
     let id: UUID
     let title: String
-    let descriptionText: String   // 챌린지 설명 텍스트 (설명을 "/"로 구분)
+    let descriptionText: String
     let iconName: String
-    let category: String          // 챌린지 카테고리
-    let alarmTime: Date?          // 알람 시간 추천
+    let category: String
+    let alarmTime: Date?
 
     private enum CodingKeys: String, CodingKey {
         case title, descriptionText, iconName, id, category, alarmTime

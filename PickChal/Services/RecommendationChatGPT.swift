@@ -40,38 +40,14 @@ class RecommendationChatGPT {
                 "alarmTime": "09:00:00",
                 "iconName": "figure.walk",
                 "days": 3
-              },
-              {
-                "id": "f0b92a40-09d2-41d0-b2ab-ff89a6f41ac8",
-                "title": "물 2L 챌린지",
-                "subTitle": "수분 보충으로 건강 챙기기!",
-                "descriptionText": "첫날: 하루 물 1L를 마셔보세요 / 둘째 날: 하루 물 1.5L를 목표로 해보세요 / 셋째 날: 하루 2L를 달성해보세요 / 넷째 날: 하루 2L의 물을 마시고 간단한 스트레칭을 해주세요 / 다섯째 날: 물 2.5L의 물을 마시고 스트레칭으로 하루를 마무리해보세요",
-                "category": "건강",
-                "alarmTime": "08:00:00",
-                "iconName": "drop.fill",
-                "days": 5
-              },
-              {
-                "id": "d8a0f0c6-47de-463f-9f4c-0a8b5d7518f7",
-                "title": "일기 쓰기 챌린지",
-                "subTitle": "하루를 되돌아보며 마음 정리",
-                "descriptionText": "첫날: 오늘의 기분과 간단한 메모를 남겨보세요 / 둘째 날: 감사한 일을 한 가지 찾아보세요 / 셋째 날: 오늘 있었던 작은 행복을 적어보세요 / 넷째 날: 나만의 목표를 적어보세요 / 다섯째 날: 하루를 마무리하며 느낀 점을 정리해보세요 / 여섯째 날: 앞으로의 계획을 생각해보세요 / 일곱째 날: 일주일간의 소감을 정리해보세요",
-                "category": "자기계발",
-                "alarmTime": "21:00:00",
-                "iconName": "pencil.and.outline",
-                "days": 7
               }
             ]
             """
-        return mockJSON
-        
+//        return mockJSON
         
          // MARK: 원래 코드
-//         let userJSON = try encodeUser(user)
-//         let prompt = "사용자정보: \(userJSON)\n이걸 바탕으로 일일챌린지 3개를 title,description(구체적인 목표와 장점 설명),iconName(SF Symbol) 필드를 가진 JSON 배열로 응답해주고 JSON 배열 외 다른 텍스트는 포함하지 말아줘"
-//         return try await api.sendMessage(text: prompt)
+         let userJSON = try encodeUser(user)
+         let prompt = "예시데이터: \(mockJSON) 위의 예시 데이터처럼 id,title,subTitle,descriptionText,category,alarmTime,iconName(SF Symbol),days 필드를 가진 챌린지를 사용자정보: \(userJSON) 기반으로 챌린지 3개를 JSON 배열로 순수하게 출력해줘. JSON 배열 외 다른 텍스트는 절대 포함하지 마세요. descriptionText는 첫날, 둘째 날, 이런식으로 날로만 해주고 진행이 점진적이게 이어지게 해줘"
+         return try await api.sendMessage(text: prompt)
     }
 }
-
-
-//"{\"year\":user.year,\"mbti\":user.mbti.rawValue,\"interests\":~~~}"

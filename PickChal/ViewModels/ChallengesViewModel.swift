@@ -14,7 +14,8 @@ class ChallengeViewModel: ObservableObject {
     // 진행 중인 챌린지를 완료 상태로 변경
     func completeChallenge(id: UUID) {
         let context = CoreDataManager.shared.container.viewContext
-        leat request: NSFetchRequest<Challenge> = Challenge.fetchRequest()
+        let request: NSFetchRequest<Challenge> = Challenge.fetchRequest()
+        
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
 
         do {
