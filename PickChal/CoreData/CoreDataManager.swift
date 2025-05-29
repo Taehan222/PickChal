@@ -56,6 +56,13 @@ class CoreDataManager {
         try saveDate()
     }
     
+    // 사용자 정보 삭제
+    func deleteUserProfile() throws {
+        guard let user = try fetchUserProfile() else { return }
+        context.delete(user)
+        try saveDate()
+    }
+    
     // 인트로 뷰 완료
     func onboardingCompleted() throws {
         guard let user = try fetchUserProfile() else { return }
