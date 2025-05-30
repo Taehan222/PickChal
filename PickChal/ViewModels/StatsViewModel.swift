@@ -19,6 +19,7 @@ final class StatisticsViewModel: ObservableObject {
     @Published var categorySummary: [String: Int] = [:]
     @Published var durationByChallenge: [(title: String, days: Int)] = []
     @Published var weekdaySummary: [String: Int] = [:]
+    @Published var user: UserModel? = nil
     
     func loadStatistics() {
         do {
@@ -66,6 +67,25 @@ final class StatisticsViewModel: ObservableObject {
             
         } catch {
             print("통계 로드 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    // 유저 데이터 불러오기
+    func loadUserProfile() {
+        do {
+            if let fetched = try CoreDataManager.shared.fetchUserProfile() {
+                user = UserModel(
+                    year: Int(fetched.year),
+                    mbti: MBTIType(rawValue: fetched.mbti ?? "") ?? .INTJ,
+                    priority: .시간관리,
+                    goal: fetched.goal ?? "",
+                    isOnboardingCompleted: fetched.onboardingCompleted
+                )
+            } else {
+                print("유저 프로필이 없습니다.")
+            }
+        } catch {
+            print("유저 프로필 불러오기 실패: \(error.localizedDescription)")
         }
     }
 }
