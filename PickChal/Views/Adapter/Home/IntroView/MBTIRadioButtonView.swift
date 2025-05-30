@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MBTIRadioButtonView: View {
+    @ObservedObject var viewModel: OnboardingVM
+
     let mbtiPairs: [[(abbreviation: String, meaning: String)]] = [
         [("I", "Introversion"), ("E", "Extroversion")],
         [("N", "Intuition"), ("S", "Sensing")],
@@ -91,10 +93,15 @@ struct MBTIRadioButtonView: View {
                     Spacer()
                     
                     if selections.allSatisfy({ $0 != nil }) {
-                        NavigationLink(destination: NextView(), isActive: $navigateNext) {
+                        NavigationLink(destination: OnboardingGoalView(viewModel: viewModel), isActive: $navigateNext) {
                             Button {
                                 let mbti = selections.compactMap { $0 }.joined()
                                 print("선택한 MBTI: \(mbti)")
+                                if let finalMBTI = MBTIType(rawValue: mbti) {
+                                    viewModel.mbti = finalMBTI
+                                } else {
+                                    viewModel.mbti = .INTJ
+                                }
                                 navigateNext = true
                             } label: {
                                 HStack {
@@ -123,7 +130,7 @@ struct MBTIRadioButtonView: View {
             }
         }
     }
-    
+
     func showRowsSequentially() {
         for i in 0..<showRow.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.4) {
@@ -132,9 +139,7 @@ struct MBTIRadioButtonView: View {
                 }
             }
         }
-        
     }
-
 }
 
 struct NextView: View {
@@ -146,5 +151,5 @@ struct NextView: View {
 }
 
 #Preview {
-    MBTIRadioButtonView()
+    MBTIRadioButtonView(viewModel: OnboardingVM())
 }

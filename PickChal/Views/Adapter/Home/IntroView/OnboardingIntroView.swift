@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct OnboardingIntroView: View {
     @StateObject var viewModel = OnboardingVM()
@@ -73,6 +74,9 @@ struct OnboardingIntroView: View {
                                 backgroundColor: Color(red: 255/255, green: 245/255, blue: 245/255)
                             )
                             .transition(.opacity.combined(with: .scale))
+                            .onAppear {
+                                requestNotificationPermission()
+                            }
                         }
                         .transition(.opacity.combined(with: .scale))
                     }
@@ -83,7 +87,7 @@ struct OnboardingIntroView: View {
                 Spacer()
 
                 if showNextButton {
-                    NavigationLink(destination: MBTIRadioButtonView(), isActive: $navigateNext) {
+                    NavigationLink(destination: OnboardingUserInfoView(viewModel: viewModel), isActive: $navigateNext) {
                         Button {
                             navigateNext = true
                         } label: {
@@ -111,27 +115,37 @@ struct OnboardingIntroView: View {
     }
 
     private func showIntroSequence() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                showBox1 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-                showArrow2 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.4) {
-                showBox2 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
-                showArrow3 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.8) {
-                showBox3 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 7.0) {
-                withAnimation {
-                    showNextButton = true
-                }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            showBox1 = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            showArrow2 = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.4) {
+            showBox2 = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
+            showArrow3 = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.8) {
+            showBox3 = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 7.0) {
+            withAnimation {
+                showNextButton = true
             }
         }
+    }
+
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if let error = error {
+                print("알람 허용 요청 에러: \(error.localizedDescription)")
+            } else {
+                print("알람 허용 여부: \(granted)")
+            }
+        }
+    }
 }
 
 struct OnboardingStepBox: View {
