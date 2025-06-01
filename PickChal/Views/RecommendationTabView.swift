@@ -9,10 +9,13 @@ import SwiftUI
 import ChatGPTSwift
 
 struct RecommendationTabView: View {
+    @EnvironmentObject var tabManager: TabSelectionManager
     @StateObject private var viewModel = RecommendationViewModel()
     @State private var showCards: [Bool] = []
     @State private var selectedChallenge: RecommendationModel? = nil
-    // coredata에서 userprofile 불러오기
+    @State private var showOnboardingGoal = false
+    @State private var userGoal: String = ""
+
     @FetchRequest(
         entity: UserProfile.entity(),
         sortDescriptors: []
@@ -69,23 +72,43 @@ struct RecommendationTabView: View {
                 }
                 .presentationDetents([.medium])
             }
-            .onAppear {
-                loadRecommendations()
+            .onChange(of: tabManager.selectedTab) { newTab in
+                if newTab == AppTab.recommend.rawValue {
+                    showOnboardingGoal = true
+                }
+            }
+            .fullScreenCover(isPresented: $showOnboardingGoal) {
+                OnboardingGoalViewWrapper { goal in
+                    userGoal = goal
+                    saveGoalToUserProfile(goal)
+                    loadRecommendations(goal: goal)
+                }
             }
         }
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
     }
-    // coredata의 사용자 정보로 챌린지 불러오기
-    private func loadRecommendations() {
+
+    private func saveGoalToUserProfile(_ goal: String) {
+        guard let profile = profiles.first else { return }
+        profile.goal = goal
+        do {
+            try CoreDataManager.shared.container.viewContext.save()
+            print("사용자 목표 저장 완료: \(goal)")
+        } catch {
+            print("사용자 목표 저장 실패: \(error.localizedDescription)")
+        }
+    }
+
+    private func loadRecommendations(goal: String) {
         guard let profile = profiles.first else {
+            print("프로필이 없습니다.")
             return
         }
-        // 사용자 정보 usermodel로 변환
         let user = UserModel(
             year: Int(profile.year),
             mbti: MBTIType(rawValue: profile.mbti ?? "") ?? .INTJ,
             priority: .운동,
-            goal: profile.goal ?? "",
+            goal: goal,
             isOnboardingCompleted: profile.onboardingCompleted
         )
         Task {
@@ -99,7 +122,7 @@ struct RecommendationTabView: View {
     }
 }
 
-
 #Preview {
     RecommendationTabView()
+        .environmentObject(TabSelectionManager.shared)
 }

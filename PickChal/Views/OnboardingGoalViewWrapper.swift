@@ -1,18 +1,20 @@
 //
-//  OnboardingGoalView.swift
+//  OnboardingGoalViewWrapper.swift
 //  PickChal
 //
-//  Created by 조수원 on 5/25/25.
+//  Created by 조수원 on 6/1/25.
 //
 
 import SwiftUI
 
-struct OnboardingGoalView: View {
-    @EnvironmentObject var viewModel: OnboardingVM
+struct OnboardingGoalViewWrapper: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var showInput = false
     @State private var showBackgroundCards = false
     @State private var cardInfos: [BackgroundCardInfo] = []
-    @AppStorage("onboardingCompleted") private var onboardingCompleted = false
+    @State private var userInput: String = ""
+
+    let onGoalEntered: (String) -> Void
 
     private let words: [String] = [
         "iOS 앱 개발자가 되고 싶어요", "헬스해서 몸을 만들고 싶어요", "밤 낮을 바꾸고 싶어요",
@@ -24,8 +26,6 @@ struct OnboardingGoalView: View {
         "SNS 사용 시간을 줄이고 싶어요", "새로운 취미를 찾고 싶어요", "졸려요", "배고파요",
         "무슨 말을 더 써야할까요", "쓸 말이 이젠 없어요", "나중에 GPT로 더 뽑아야겠어요", "이 정도면 꽉 차겠죠"
     ]
-
-    @State private var userInput: String = ""
 
     var body: some View {
         ZStack {
@@ -57,11 +57,8 @@ struct OnboardingGoalView: View {
                             .shadow(color: .gray.opacity(0.3), radius: 4, x: 0, y: 2)
 
                         Button("확인") {
-                            print("목표 입력됨: \(userInput)")
-                            viewModel.goal = userInput
-                            viewModel.saveUserProfile()
-                            onboardingCompleted = true
-                            TabSelectionManager.shared.switchToTab(.recommend)
+                            onGoalEntered(userInput)
+                            dismiss()
                         }
                         .disabled(userInput.isEmpty)
                         .opacity(userInput.isEmpty ? 0.4 : 1.0)
@@ -139,30 +136,8 @@ struct OnboardingGoalView: View {
     }
 }
 
-struct BackgroundCardInfo: Hashable {
-    let index: Int
-    let text: String
-    let position: CGPoint
-    let color: Color
-}
-
-struct BackgroundCardView: View {
-    let text: String
-    let color: Color
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 16, weight: .medium))
-            .foregroundColor(.white)
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(color.opacity(0.4))
-                    .shadow(radius: 2)
-            )
-    }
-}
-
 #Preview {
-    OnboardingGoalView().environmentObject(OnboardingVM())
+    OnboardingGoalViewWrapper { goal in
+        print("입력된 목표: \(goal)")
+    }
 }
