@@ -36,6 +36,10 @@ struct ContentView: View {
                 .tag(2)
                 .environmentObject(statsVM)
         }
+        .onAppear {
+            statsVM.loadStatistics()
+            statsVM.registerNotificationsIfNeeded()
+        }
         .accentColor(Theme.Colors.primary)
         .background(Theme.Colors.background)
     }

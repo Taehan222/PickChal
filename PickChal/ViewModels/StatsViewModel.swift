@@ -21,6 +21,9 @@ final class StatisticsViewModel: ObservableObject {
     @Published var weekdaySummary: [String: Int] = [:]
     @Published var user: UserModel? = nil
     
+    var ongoingChallenges: [ChallengeModel] {
+        challengeModels.filter { !$0.isCompleted }
+    }
     func loadStatistics() {
         do {
             // CoreData에서 불러오기
@@ -86,6 +89,13 @@ final class StatisticsViewModel: ObservableObject {
             }
         } catch {
             print("유저 프로필 불러오기 실패: \(error.localizedDescription)")
+        }
+    }
+    func registerNotificationsIfNeeded() {
+        if UserDefaults.standard.bool(forKey: "notificationsEnabled") {
+            for challenge in ongoingChallenges {
+                NotificationManager.shared.scheduleChallenge(challenge)
+            }
         }
     }
 }

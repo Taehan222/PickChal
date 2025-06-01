@@ -85,5 +85,7 @@ struct RecommendationModel: Identifiable, Decodable {
         self.id = (try? c.decode(UUID.self, forKey: .id)) ?? UUID()
         self.category = try c.decode(String.self, forKey: .category)
         self.alarmTime = try? c.decode(Date.self, forKey: .alarmTime)
+            }
+
     }
-}
+

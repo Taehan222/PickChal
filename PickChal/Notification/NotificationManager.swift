@@ -34,7 +34,12 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         content.badge = badge as NSNumber
         UIApplication.shared.applicationIconBadgeNumber = badge
 
-        let components = Calendar.current.dateComponents([.hour, .minute], from: challenge.alarmTime)
+        //KST 시간대 기준 DateComponents 생성
+        let timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let calendar = Calendar(identifier: .gregorian)
+        var components = calendar.dateComponents(in: timeZone, from: challenge.alarmTime)
+        components.second = 0
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
 
         let request = UNNotificationRequest(
@@ -44,8 +49,18 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         )
 
         UNUserNotificationCenter.current().add(request)
-        print("알림 등록 완료: \(challenge.title)")
+
+//        print("알림 등록 완료: \(challenge.title)")
+//        print("저장된 alarmTime(UTC): \(challenge.alarmTime)")
+//        print("알림 등록 시간 (KST 기준): \(components.hour ?? -1):\(components.minute ?? -1):\(components.second ?? -1)")
+//
+//        if let nextDate = trigger.nextTriggerDate() {
+//            print("실제 알림 울릴 예정 시각: \(nextDate.description(with: .current))")
+//        } else {
+//            print("트리거에서 nextTriggerDate 못 가져옴")
+//        }
     }
+
 
     //  테스트용 알림 (5초 후)
     func scheduleImmediateTestNotification(for challenge: ChallengeModel) {

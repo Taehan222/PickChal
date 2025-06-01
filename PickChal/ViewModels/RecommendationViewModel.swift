@@ -33,9 +33,11 @@ class RecommendationViewModel: ObservableObject {
                   let data = jsonArrayString.data(using: .utf8) else {
                 throw URLError(.cannotParseResponse)
             }
-            
-            let recs = try JSONDecoder().decode([RecommendationModel].self, from: data)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let recs = try decoder.decode([RecommendationModel].self, from: data)
             recommendations = recs
+            print(recommendations.first?.alarmTime)
         } catch {
             errorMessage = "불러오기 실패: \(error.localizedDescription)"
         }

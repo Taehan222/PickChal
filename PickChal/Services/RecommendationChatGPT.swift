@@ -37,7 +37,7 @@ class RecommendationChatGPT {
                 "subTitle": "하루를 상쾌하게 시작하세요!",
                 "descriptionText": "첫날: 간단한 목과 어깨 스트레칭으로 시작해보세요 / 둘째 날: 전신 스트레칭으로 몸 전체를 풀어주세요 / 셋째 날: 깊은 호흡과 함께 10분간의 스트레칭으로 마무리해보세요",
                 "category": "운동",
-                "alarmTime": "09:00:00",
+                "alarmTime": "2025-06-01T09:00:00+09:00"
                 "iconName": "figure.walk",
                 "days": 3
               }

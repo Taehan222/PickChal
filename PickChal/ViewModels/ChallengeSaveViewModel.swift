@@ -30,7 +30,7 @@ final class ChallengeSaveViewModel: ObservableObject {
         
         // 생성일 및 알림 시간
         newChallenge.createdAt = Date()
-        newChallenge.alarmTime = recommendation.alarmTime ?? Date() // 알림 시간 없으면 현재시간으로 기본값
+        newChallenge.alarmTime = recommendation.alarmTime ?? Date()// 알림 시간 없으면 현재시간으로 기본값
         newChallenge.isCompleted = false
 
         do {

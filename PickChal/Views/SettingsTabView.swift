@@ -72,6 +72,9 @@ struct SettingsTabView: View {
     var completedChallenges: [ChallengeModel] {
         challenges.filter { $0.isCompleted }
     }
+    var ongoingChallenges: [ChallengeModel] {
+        challenges.filter { !$0.isCompleted }
+    }
 
     var challengeCompletionRate: Int {
         let total = challenges.count
@@ -131,7 +134,7 @@ struct SettingsTabView: View {
                         SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
                             .onChange(of: notificationsEnabled) { isOn in
                                 if isOn {
-                                    for challenge in challenges where !challenge.isCompleted {
+                                    for challenge in ongoingChallenges {
                                         NotificationManager.shared.scheduleChallenge(challenge)
                                     }
                                 } else {
@@ -163,6 +166,7 @@ struct SettingsTabView: View {
             .onAppear {
                 statsVM.loadStatistics()
                 statsVM.loadUserProfile()
+                
             }
         }
     }
