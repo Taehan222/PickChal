@@ -55,12 +55,19 @@ struct DummyData {
 }
 
 
+
+
 struct SettingsTabView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
-    @AppStorage("darkMode") private var darkMode = false
+    @EnvironmentObject var statsVM: StatisticsViewModel
 
-    let user: UserModel = DummyData.user
-    let challenges: [ChallengeModel] = DummyData.challenges
+    var challenges: [ChallengeModel] {
+        statsVM.challengeModels
+    }
+
+    var user: UserModel? {
+        statsVM.user
+    }
 
     var completedChallenges: [ChallengeModel] {
         challenges.filter { $0.isCompleted }
@@ -75,96 +82,160 @@ struct SettingsTabView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                // 프로필
-                Section(header: Text("프로필")) {
-                    HStack(spacing: 16) {
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .frame(width: 60, height: 60)
-                            .foregroundColor(.red)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 32) {
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("출생: \(user.year)", systemImage: "calendar")
-                            Label("MBTI: \(user.mbti.rawValue)", systemImage: "brain.head.profile")
-                            Label("우선순위: \(user.priority.rawValue)", systemImage: "flag")
-                            Label("목표: \(user.goal)", systemImage: "target")
-                        }
-                        .font(.subheadline)
-                    }
+                    // MARK: - 프로필
+                    if let user = user {
+                        VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Profile")
+                                    .font(.title2).bold()
 
-                    NavigationLink(destination: Text("프로필 수정 뷰")) {
-                        Label("프로필 편집", systemImage: "pencil")
-                    }
-                }
+                                VStack(alignment: .leading, spacing: 8) {
+                                    profileRow(title: "출생", value: "\(user.year)년생")
+                                    profileRow(title: "MBTI", value: user.mbti.rawValue)
+                                    profileRow(title: "우선순위", value: user.priority.rawValue)
 
-                // 챌린지 통계
-                Section(header: Text("챌린지 통계")) {
-                    NavigationLink(destination: ChallengeStatsDetailView(challenges: challenges)) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("전체 챌린지 완료율")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                Text("\(challengeCompletionRate)% 완료")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("목표")
+                                            .fontWeight(.semibold)
+                                        Text(user.goal)
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.top, 6)
+                                }
+                                .padding()
+                                .background(Color(white: 0.97))
+                                .cornerRadius(12)
                             }
-                            Spacer()
-                            Image(systemName: "chart.bar.xaxis")
-                                .foregroundColor(.green)
+                            .padding(.horizontal)
                         }
                     }
-                }
 
-                // 완료한 챌린지
-                Section(header: Text("완료한 챌린지")) {
-                    NavigationLink(destination: ChallengeCompletedListView(completed: completedChallenges)) {
-                        HStack {
-                            Text("완료한 챌린지 \(completedChallenges.count)개")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(.blue)
+                    // MARK: - 챌린지 통계
+                    VStack(spacing: 12) {
+                        SettingsRowCard(title: "완료율 통계", detail: "\(challengeCompletionRate)%") {
+                            ChallengeStatsDetailView(challenges: challenges)
+                        }
+
+                        SettingsRowCard(title: "완료한 챌린지", detail: "\(completedChallenges.count)개") {
+                            ChallengeCompletedListView(completed: completedChallenges)
                         }
                     }
-                }
+                    .padding(.horizontal)
 
-                // 설정
-                Section(header: Text("설정")) {
-                    Toggle(isOn: $notificationsEnabled) {
-                        Label("알림 설정", systemImage: "bell.fill")
-                    }
+                    // MARK: - 알림 설정
+                    VStack(spacing: 12) {
+                        SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
+                            .onChange(of: notificationsEnabled) { isOn in
+                                if isOn {
+                                    for challenge in challenges where !challenge.isCompleted {
+                                        NotificationManager.shared.scheduleChallenge(challenge)
+                                    }
+                                } else {
+                                    NotificationManager.shared.removeAll()
+                                }
+                            }
 
-                    Toggle(isOn: $darkMode) {
-                        Label("다크 모드", systemImage: "moon.stars.fill")
-                    }
-                }
-                //테스트용
-                Section(header: Text("알림 테스트")) {
-                    Button {
-                        if let firstChallenge = challenges.first {
-                            NotificationManager.shared.scheduleImmediateTestNotification(for: firstChallenge)
+                        SettingsActionRow(title: "테스트 알림 보내기", icon: "paperplane.fill", color: .red) {
+                            if let first = challenges.first {
+                                NotificationManager.shared.scheduleImmediateTestNotification(for: first)
+                            }
                         }
-                    } label: {
-                        Label("🔔 테스트 알림 보내기", systemImage: "paperplane")
                     }
-                }
+                    .padding(.horizontal)
 
-                // 초기화
-                Section {
-                    Button(role: .destructive) {
-                        print("계정 초기화")
-                    } label: {
-                        Label("유저 정보 초기화", systemImage: "trash")
+                    // MARK: - 계정 관리
+                    VStack(spacing: 12) {
+                        SettingsActionRow(title: "유저 정보 초기화", icon: "trash.fill", color: .red) {
+                            print("초기화 기능은 여기서 구현 가능")
+                        }
                     }
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 48)
                 }
+                .padding(.top, 20)
             }
-            .navigationTitle("내 정보")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                statsVM.loadStatistics()
+                statsVM.loadUserProfile()
+            }
+        }
+    }
+
+    func profileRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .fontWeight(.semibold)
+            Spacer()
+            Text(value)
+                .foregroundColor(.gray)
+        }
+    }
+}
+struct SettingsRowCard<Destination: View>: View {
+    let title: String
+    let detail: String
+    let destination: () -> Destination
+
+    var body: some View {
+        NavigationLink(destination: destination()) {
+            HStack {
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+                Text(detail)
+                    .foregroundColor(.gray)
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            .background(Color(white: 0.97))
+            .cornerRadius(12)
         }
     }
 }
 
-#Preview {
-    SettingsTabView()
+struct SettingsToggleRow: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+        }
+        .padding()
+        .background(Color(white: 0.97))
+        .cornerRadius(12)
+    }
 }
+
+struct SettingsActionRow: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .foregroundColor(color)
+                Spacer()
+                Image(systemName: icon)
+                    .foregroundColor(color)
+            }
+            .padding()
+            .background(Color(white: 0.97))
+            .cornerRadius(12)
+        }
+    }
+}
+

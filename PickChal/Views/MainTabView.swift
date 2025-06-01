@@ -10,6 +10,7 @@ import CoreData
 
 struct ContentView: View {
     @EnvironmentObject var tabManager: TabSelectionManager
+    @StateObject var statsVM = StatisticsViewModel()
 
     var body: some View {
         TabView(selection: $tabManager.selectedTab) {
@@ -33,6 +34,7 @@ struct ContentView: View {
                     Text("MY")
                 }
                 .tag(2)
+                .environmentObject(statsVM)
         }
         .accentColor(Theme.Colors.primary)
         .background(Theme.Colors.background)
@@ -42,5 +44,6 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(TabSelectionManager.shared)
+        .environmentObject(StatisticsViewModel())
 }
 

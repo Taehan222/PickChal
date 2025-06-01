@@ -20,6 +20,11 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     // 챌린지 알림 예약 (매일 반복)
     func scheduleChallenge(_ challenge: ChallengeModel) {
+        guard UserDefaults.standard.bool(forKey: "notificationsEnabled") else {
+            print("알림 꺼져있어서 등록 안함")
+            return
+        }
+
         let content = UNMutableNotificationContent()
         content.title = "⏰ 챌린지 알림"
         content.body = "'\(challenge.title)' 챌린지 시간이에요!"
@@ -39,14 +44,24 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         )
 
         UNUserNotificationCenter.current().add(request)
+        print("알림 등록 완료: \(challenge.title)")
     }
 
     //  테스트용 알림 (5초 후)
     func scheduleImmediateTestNotification(for challenge: ChallengeModel) {
+        guard UserDefaults.standard.bool(forKey: "notificationsEnabled") else {
+            print("알림 꺼져있어서 등록 안함")
+            return
+        }
         let content = UNMutableNotificationContent()
         content.title = "📣 테스트 알림"
         content.body = "'\(challenge.title)' 알림 테스트입니다!"
         content.sound = .default
+        if let imageURL = Bundle.main.url(forResource: "PickChalIcon", withExtension: "png") {
+            if let attachment = try? UNNotificationAttachment(identifier: "image", url: imageURL, options: nil) {
+                content.attachments = [attachment]
+            }
+        }
 
         let badge = nextBadgeCount()
         content.badge = badge as NSNumber
