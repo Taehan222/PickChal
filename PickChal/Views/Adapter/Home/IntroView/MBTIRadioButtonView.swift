@@ -46,43 +46,13 @@ struct MBTIRadioButtonView: View {
                     VStack(spacing: 12) {
                         ForEach(0..<mbtiPairs.count, id: \.self) { row in
                             if showRow[row] {
-                                HStack(spacing: 16) {
-                                    ForEach(0..<2, id: \.self) { col in
-                                        let trait = mbtiPairs[row][col].abbreviation
-                                        let meaning = mbtiPairs[row][col].meaning
-                                        let index = row * 2 + col
-                                        
-                                        Button(action: {
-                                            withAnimation {
-                                                selections[row] = trait
-                                            }
-                                        }) {
-                                            VStack(spacing: 4) {
-                                                Text(trait)
-                                                    .font(.title)
-                                                    .fontWeight(.bold)
-                                                
-                                                Text(meaning)
-                                                    .font(.caption)
-                                                    .foregroundColor(.black)
-                                            }
-                                            .frame(
-                                                width: ((geo.size.width - 40 - 16) / 2) * 0.8,
-                                                height: ((geo.size.height - 40 - 48) / 4) * 0.8
-                                            )
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 20)
-                                                    .fill(pastelColors[index])
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 20)
-                                                            .stroke(selections[row] == trait ? Color.blue : Color.clear, lineWidth: 4)
-                                                    )
-                                            )
-                                            .foregroundColor(.black)
-                                            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 4)
-                                        }
-                                    }
-                                }
+                                RowView(
+                                    row: row,
+                                    selections: $selections,
+                                    mbtiPairs: mbtiPairs,
+                                    pastelColors: pastelColors,
+                                    geo: geo
+                                )
                                 .transition(.opacity)
                                 .animation(.easeInOut(duration: 0.3), value: showRow[row])
                             }
@@ -93,7 +63,11 @@ struct MBTIRadioButtonView: View {
                     Spacer()
                     
                     if selections.allSatisfy({ $0 != nil }) {
-                        NavigationLink(destination: OnboardingGoalView(viewModel: viewModel), isActive: $navigateNext) {
+                        NavigationLink(
+                            destination: OnboardingGoalView()
+                                .environmentObject(viewModel),
+                            isActive: $navigateNext
+                        ) {
                             Button {
                                 let mbti = selections.compactMap { $0 }.joined()
                                 print("선택한 MBTI: \(mbti)")
@@ -142,11 +116,51 @@ struct MBTIRadioButtonView: View {
     }
 }
 
-struct NextView: View {
+private struct RowView: View {
+    let row: Int
+    @Binding var selections: [String?]
+    let mbtiPairs: [[(abbreviation: String, meaning: String)]]
+    let pastelColors: [Color]
+    let geo: GeometryProxy
+    
     var body: some View {
-        Text("다음 화면")
-            .font(.largeTitle)
-            .bold()
+        HStack(spacing: 16) {
+            ForEach(0..<2, id: \.self) { col in
+                let trait = mbtiPairs[row][col].abbreviation
+                let meaning = mbtiPairs[row][col].meaning
+                let index = row * 2 + col
+                
+                Button(action: {
+                    withAnimation {
+                        selections[row] = trait
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        Text(trait)
+                            .font(.title)
+                            .fontWeight(.bold)
+                        
+                        Text(meaning)
+                            .font(.caption)
+                            .foregroundColor(.black)
+                    }
+                    .frame(
+                        width: ((geo.size.width - 40 - 16) / 2) * 0.8,
+                        height: ((geo.size.height - 40 - 48) / 4) * 0.8
+                    )
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(pastelColors[index])
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(selections[row] == trait ? Color.blue : Color.clear, lineWidth: 4)
+                            )
+                    )
+                    .foregroundColor(.black)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 4)
+                }
+            }
+        }
     }
 }
 
