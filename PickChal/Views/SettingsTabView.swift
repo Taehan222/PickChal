@@ -119,7 +119,7 @@ struct SettingsTabView: View {
 
                     // MARK: - 챌린지 통계
                     VStack(spacing: 12) {
-                        SettingsRowCard(title: "완료율 통계", detail: "\(challengeCompletionRate)%") {
+                        SettingsRowCard(title: "챌린지 통계", detail: "\(challengeCompletionRate)%") {
                             ChallengeStatsDetailView(challenges: challenges)
                         }
 
