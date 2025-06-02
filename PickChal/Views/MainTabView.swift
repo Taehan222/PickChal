@@ -11,7 +11,7 @@ import CoreData
 struct ContentView: View {
     @EnvironmentObject var tabManager: TabSelectionManager
     @StateObject var statsVM = StatisticsViewModel()
-
+    @EnvironmentObject var themeManager: ThemeManager
     var body: some View {
         TabView(selection: $tabManager.selectedTab) {
             RecommendationTabView()
@@ -40,8 +40,15 @@ struct ContentView: View {
             statsVM.loadStatistics()
             statsVM.registerNotificationsIfNeeded()
         }
+        
         .accentColor(Theme.Colors.primary)
         .background(Theme.Colors.background)
+        
+        //ThemeManager 사용예시
+        //.accentColor(themeManager.currentTheme.accentColor)
+        //.background(themeManager.currentTheme.backgroundColor)
+        
+        
     }
 }
 
