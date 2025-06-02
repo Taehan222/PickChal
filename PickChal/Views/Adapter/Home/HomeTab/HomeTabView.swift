@@ -1,8 +1,10 @@
 import SwiftUI
 import CoreData
+import FSCalendar
 
 struct HomeTabView: View {
     @State private var selectedDate = Date()
+    @State private var calendarHeight: CGFloat = 300
     @StateObject private var tabViewModel = HomeTabViewModel()
 
     @FetchRequest(
@@ -12,8 +14,8 @@ struct HomeTabView: View {
 
     var body: some View {
         VStack(spacing: 15) {
-            FSCalendarView(selectedDate: $selectedDate)
-                .frame(height: 300)
+            CalendarView(selectedDate: $selectedDate, calendarHeight: $calendarHeight)
+                .frame(height: calendarHeight)
 
             ScrollView {
                 VStack(spacing: 16) {
@@ -37,8 +39,7 @@ struct HomeTabView: View {
                         icon: "xmark.circle.fill",
                         iconColor: .red,
                         showButton: false
-                    ) { _ in
-                    }
+                    ) { _ in }
                 }
                 .padding(.top, 8)
             }
