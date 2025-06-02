@@ -16,7 +16,8 @@ class RecommendationViewModel: ObservableObject {
     private let chatService = RecommendationChatGPT()
 
     private func extractJSONArray(from text: String) -> String? {
-        guard let start = text.firstIndex(of: "["), let end = text.lastIndex(of: "]") else {
+        guard let start = text.firstIndex(of: "["),
+              let end = text.lastIndex(of: "]") else {
             return nil
         }
         return String(text[start...end])
@@ -37,7 +38,6 @@ class RecommendationViewModel: ObservableObject {
             decoder.dateDecodingStrategy = .iso8601
             let recs = try decoder.decode([RecommendationModel].self, from: data)
             recommendations = recs
-            print(recommendations.first?.alarmTime)
         } catch {
             errorMessage = "불러오기 실패: \(error.localizedDescription)"
         }

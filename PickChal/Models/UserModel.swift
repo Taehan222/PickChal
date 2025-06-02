@@ -61,18 +61,28 @@ struct RecommendationModel: Identifiable, Decodable {
     let title: String
     let descriptionText: String
     let iconName: String
+    let iconColor: String?      // 새로 추가된 필드 (옵셔널)
     let category: String
     let alarmTime: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case title, descriptionText, iconName, id, category, alarmTime
+        case title, descriptionText, iconName, iconColor, id, category, alarmTime
     }
 
-    init(id: UUID = UUID(), title: String, descriptionText: String, iconName: String, category: String, alarmTime: Date? = nil) {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        descriptionText: String,
+        iconName: String,
+        iconColor: String? = nil,   // 기본값 nil 추가
+        category: String,
+        alarmTime: Date? = nil
+    ) {
         self.id = id
         self.title = title
         self.descriptionText = descriptionText
         self.iconName = iconName
+        self.iconColor = iconColor
         self.category = category
         self.alarmTime = alarmTime
     }
@@ -82,10 +92,11 @@ struct RecommendationModel: Identifiable, Decodable {
         self.title = try c.decode(String.self, forKey: .title)
         self.descriptionText = try c.decode(String.self, forKey: .descriptionText)
         self.iconName = try c.decode(String.self, forKey: .iconName)
+        self.iconColor = try? c.decode(String.self, forKey: .iconColor)
         self.id = (try? c.decode(UUID.self, forKey: .id)) ?? UUID()
         self.category = try c.decode(String.self, forKey: .category)
         self.alarmTime = try? c.decode(Date.self, forKey: .alarmTime)
-            }
-
     }
+}
+
 

@@ -37,17 +37,22 @@ class RecommendationChatGPT {
                 "subTitle": "하루를 상쾌하게 시작하세요!",
                 "descriptionText": "첫날: 간단한 목과 어깨 스트레칭으로 시작해보세요 / 둘째 날: 전신 스트레칭으로 몸 전체를 풀어주세요 / 셋째 날: 깊은 호흡과 함께 10분간의 스트레칭으로 마무리해보세요",
                 "category": "운동",
-                "alarmTime": "2025-06-01T09:00:00+09:00"
+                "alarmTime": "2025-06-01T09:00:00+09:00",
                 "iconName": "figure.walk",
+                "iconColor": "green",
                 "days": 3
               }
             ]
             """
-//        return mockJSON
+        // return mockJSON
         
-         // MARK: 원래 코드
-         let userJSON = try encodeUser(user)
-         let prompt = "예시데이터: \(mockJSON) 위의 예시 데이터처럼 id,title,subTitle,descriptionText,category,alarmTime,iconName(SF Symbol),days 필드를 가진 챌린지를 사용자정보: \(userJSON) 기반으로 챌린지 3개를 JSON 배열로 순수하게 출력해줘. JSON 배열 외 다른 텍스트는 절대 포함하지 마세요. descriptionText는 첫날, 둘째 날, 이런식으로 날로만 해주고 진행이 점진적이게 이어지게 해줘"
-         return try await api.sendMessage(text: prompt)
+        let userJSON = try encodeUser(user)
+        let prompt = """
+             예시데이터: \(mockJSON)
+             위의 예시 데이터처럼 id, title, subTitle, descriptionText, category, alarmTime, iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days 필드를 가진 챌린지를 사용자정보: \(userJSON) 기반으로 챌린지 3개를 JSON 배열로 순수하게 출력해줘.
+             JSON 배열 외 다른 텍스트는 절대 포함하지 마세요.
+             descriptionText는 '첫날:', '둘째 날:' 형식으로 작성하고 점진적으로 이어지게 해줘.
+             """
+        return try await api.sendMessage(text: prompt)
     }
 }

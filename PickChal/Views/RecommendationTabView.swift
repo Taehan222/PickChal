@@ -1,5 +1,5 @@
 //
-//  Recommendation.swift
+//  RecommendationTabView.swift
 //  SampleApp03
 //
 //  Created by 윤태한 on 5/16/25.
@@ -9,6 +9,7 @@ import SwiftUI
 import ChatGPTSwift
 
 struct RecommendationTabView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var tabManager: TabSelectionManager
     @StateObject private var viewModel = RecommendationViewModel()
     @State private var showCards: [Bool] = []
@@ -46,8 +47,11 @@ struct RecommendationTabView: View {
                                     CardView(
                                         title: rec.title,
                                         subtitle: rec.descriptionText,
-                                        iconName: rec.iconName
+                                        iconName: rec.iconName,
+                                        iconColorName: rec.iconColor
                                     )
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 16)
                                     .onTapGesture {
                                         selectedChallenge = rec
                                     }
@@ -56,9 +60,11 @@ struct RecommendationTabView: View {
                                     .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
                                 }
                             }
-                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top)
                         }
                     }
+
                 }
             }
             .navigationTitle("챌린지 추천")
@@ -70,7 +76,6 @@ struct RecommendationTabView: View {
                     }
                     selectedChallenge = nil
                 }
-                .presentationDetents([.medium])
             }
             .onChange(of: tabManager.selectedTab) { newTab in
                 if newTab == AppTab.recommend.rawValue {

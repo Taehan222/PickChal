@@ -10,8 +10,10 @@ import SwiftUI
 struct ChallengeDetailModalView: View {
     var challenge: RecommendationModel
     var onChallenge: () -> Void
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var saveViewModel = ChallengeSaveViewModel()
+    @EnvironmentObject var themeManager: ThemeManager
 
     private var dailyDescriptions: [String] {
         challenge.descriptionText
@@ -20,57 +22,70 @@ struct ChallengeDetailModalView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                Spacer()
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
 
-                Image(systemName: challenge.iconName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 60, height: 60)
-                    .padding()
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image(systemName: challenge.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
+                        .padding()
+                        .foregroundColor(Color.from(name: challenge.iconColor))
+                    Text(challenge.title)
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
 
-                Text(challenge.title)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(Array(dailyDescriptions.enumerated()), id: \.0) { index, desc in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Day \(index + 1)")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(dailyDescriptions.enumerated()), id: \.0) { index, desc in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Day \(index + 1)")
-                                .font(.headline)
-                            Text(desc)
-                                .font(.body)
-                                .foregroundColor(.gray)
+                                Text(desc)
+                                    .font(.body)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(themeManager.currentTheme.accentColor, lineWidth: 3)
+                            )
+                            .cornerRadius(12)
                         }
-                        .padding()
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(12)
                     }
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Button(action: {
+                        saveViewModel.saveChallenge(from: challenge)
+                        dismiss()
+                        onChallenge()
+                    }) {
+                        Text("챌린지 도전하기")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(themeManager.currentTheme.accentColor)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                    }
+
+                    Spacer(minLength: 30)
                 }
-                .padding(.horizontal)
-
-                Spacer()
-
-                Button(action: {
-                    saveViewModel.saveChallenge(from: challenge)
-                    dismiss()
-                    onChallenge()
-                }) {
-                    Text("챌린지 도전하기")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                }
-
-                Spacer(minLength: 30)
+                .padding()
             }
-            .padding()
         }
-        .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
+        .background(Color.white.ignoresSafeArea())
     }
 }
