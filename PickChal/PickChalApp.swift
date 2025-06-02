@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct PickChalApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject var themeManager = ThemeManager()
     @StateObject var tabManager = TabSelectionManager.shared
     @AppStorage("onboardingCompleted") private var onboardingCompleted = false // 인트로 뷰 완료 여부 저장
 
@@ -24,6 +25,7 @@ struct PickChalApp: App {
             ContentView()
                 .environment(\.managedObjectContext, CoreDataManager.shared.container.viewContext)
                 .environmentObject(tabManager)
+                .environmentObject(themeManager)
                 .overlay {
                     if !onboardingCompleted {
                         NavigationStack {
