@@ -50,7 +50,9 @@ class CustomCell: FSCalendarCell {
         }
     }
 
-    func showSelection(_ selected: Bool, isToday: Bool) {
+    func showSelection(_ selected: Bool, isToday: Bool, theme: AppTheme) {
+        todayLayer.fillColor = UIColor.systemGray5.cgColor
+        selectionLayer.fillColor = UIColor(theme.accentColor).cgColor
         todayLayer.isHidden = !isToday
         selectionLayer.isHidden = isToday || !selected
     }

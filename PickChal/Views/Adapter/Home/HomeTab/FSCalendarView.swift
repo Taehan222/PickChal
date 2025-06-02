@@ -11,6 +11,7 @@ import FSCalendar
 struct CalendarView: UIViewRepresentable {
     @Binding var selectedDate: Date
     @Binding var calendarHeight: CGFloat
+    @EnvironmentObject var themeManager: ThemeManager
 
     func makeUIView(context: Context) -> FSCalendar {
         let calendar = FSCalendar(frame: .zero)
@@ -38,14 +39,16 @@ struct CalendarView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(self, theme: themeManager.currentTheme)
     }
 
     class Coordinator: NSObject, FSCalendarDelegate, FSCalendarDataSource, FSCalendarDelegateAppearance {
         var parent: CalendarView
+        let theme: AppTheme
 
-        init(_ parent: CalendarView) {
+        init(_ parent: CalendarView, theme: AppTheme) {
             self.parent = parent
+            self.theme = theme
         }
 
         func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
@@ -83,7 +86,7 @@ struct CalendarView: UIViewRepresentable {
             let cell = calendar.dequeueReusableCell(withIdentifier: "cell", for: date, at: monthPosition) as! CustomCell
             let isToday = Calendar.current.isDateInToday(date)
             let isSelected = Calendar.current.isDate(date, inSameDayAs: parent.selectedDate)
-            cell.showSelection(isSelected, isToday: isToday)
+            cell.showSelection(isSelected, isToday: isToday, theme: theme)
             return cell
         }
     }

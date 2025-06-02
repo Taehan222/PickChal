@@ -6,6 +6,7 @@ struct HomeTabView: View {
     @State private var selectedDate = Date()
     @State private var calendarHeight: CGFloat = 300
     @StateObject private var tabViewModel = HomeTabViewModel()
+    @EnvironmentObject var themeManager: ThemeManager
 
     @FetchRequest(
         entity: ChallengeLog.entity(),
@@ -26,7 +27,7 @@ struct HomeTabView: View {
                         logs: logsForDate.filter { !$0.completed },
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
-                        iconColor: .blue,
+                        iconColor: themeManager.currentTheme.accentColor,
                         showButton: true
                     ) { log in
                         tabViewModel.showCompletionAlert(for: log.id ?? UUID())
@@ -86,7 +87,8 @@ struct HomeTabView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.headline)
+                .font(themeManager.currentTheme.font)
+                .foregroundColor(themeManager.currentTheme.accentColor)
                 .padding(.leading)
             if logs.isEmpty {
                 emptyLabel(text: emptyMessage)
@@ -115,7 +117,7 @@ struct HomeTabView: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.black.opacity(0.2), lineWidth: 1)
+                .stroke(themeManager.currentTheme.accentColor.opacity(0.2), lineWidth: 1)
         )
         .padding(.horizontal)
     }
@@ -134,7 +136,8 @@ struct HomeTabView: View {
         return HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(challengeTitle)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(themeManager.currentTheme.font)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                 Text(logDescription)
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
@@ -153,7 +156,7 @@ struct HomeTabView: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.black, lineWidth: 2)
+                .stroke(themeManager.currentTheme.accentColor, lineWidth: 2)
         )
         .padding(.horizontal)
     }
@@ -161,4 +164,5 @@ struct HomeTabView: View {
 
 #Preview {
     HomeTabView()
+        .environmentObject(ThemeManager())
 }
