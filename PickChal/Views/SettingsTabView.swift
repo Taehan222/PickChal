@@ -67,7 +67,7 @@ struct SettingsTabView: View {
                     // MARK: - 테마 선택
                     Section(header: Text("테마 선택").font(.headline)) {
                         Picker("테마", selection: $themeManager.currentTheme) {
-                            ForEach(AppThemeColor.allCases) { theme in
+                            ForEach(AppTheme.allCases) { theme in
                                 Text(theme.displayName).tag(theme)
                             }
                         }

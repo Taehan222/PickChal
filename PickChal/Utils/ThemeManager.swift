@@ -1,5 +1,5 @@
 import SwiftUI
 
 class ThemeManager: ObservableObject {
-    @Published var currentTheme: AppThemeColor = .lavender
+    @Published var currentTheme: AppTheme = .lavender
 }

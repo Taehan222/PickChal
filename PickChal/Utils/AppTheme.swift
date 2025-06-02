@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum AppThemeColor: String, CaseIterable, Identifiable {
+enum AppTheme: String, CaseIterable, Identifiable {
     case lavender, skyBlue, mint, peach, rose
 
     var id: String { rawValue }
