@@ -88,7 +88,7 @@ struct HomeTabView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(themeManager.currentTheme.font)
-                .foregroundColor(themeManager.currentTheme.accentColor)
+                .foregroundColor(.black)
                 .padding(.leading)
             if logs.isEmpty {
                 emptyLabel(text: emptyMessage)
@@ -117,7 +117,7 @@ struct HomeTabView: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(themeManager.currentTheme.accentColor.opacity(0.2), lineWidth: 1)
+                .stroke(themeManager.currentTheme.accentColor.opacity(0.2), lineWidth: 2)
         )
         .padding(.horizontal)
     }
@@ -136,8 +136,8 @@ struct HomeTabView: View {
         return HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(challengeTitle)
-                    .font(themeManager.currentTheme.font)
-                    .foregroundColor(themeManager.currentTheme.accentColor)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
                 Text(logDescription)
                     .font(.system(size: 14))
                     .foregroundColor(.gray)

@@ -42,13 +42,13 @@ struct OnboardingIntroView: View {
                         .transition(.opacity.combined(with: .scale))
                     }
 
-                    if showBox2 {
-                        VStack(spacing: 20) {
-                            if showArrow2 {
-                                Image(systemName: "arrow.down")
-                                    .foregroundColor(.black)
-                                    .transition(.opacity.combined(with: .scale))
-                            }
+                    VStack(spacing: 20) {
+                        if showArrow2 {
+                            Image(systemName: "arrow.down")
+                                .foregroundColor(.black)
+                                .transition(.opacity.combined(with: .scale))
+                        }
+                        if showBox2 {
                             OnboardingStepBox(
                                 text: "캘린더에 저장하여 챌린지를 완주해요",
                                 icon: "calendar",
@@ -57,16 +57,16 @@ struct OnboardingIntroView: View {
                             )
                             .transition(.opacity.combined(with: .scale))
                         }
-                        .transition(.opacity.combined(with: .scale))
                     }
+                    .transition(.opacity.combined(with: .scale))
 
-                    if showBox3 {
-                        VStack(spacing: 20) {
-                            if showArrow3 {
-                                Image(systemName: "arrow.down")
-                                    .foregroundColor(.black)
-                                    .transition(.opacity.combined(with: .scale))
-                            }
+                    VStack(spacing: 20) {
+                        if showArrow3 {
+                            Image(systemName: "arrow.down")
+                                .foregroundColor(.black)
+                                .transition(.opacity.combined(with: .scale))
+                        }
+                        if showBox3 {
                             OnboardingStepBox(
                                 text: "알람을 통해 체계적으로 루틴을 관리해요",
                                 icon: "alarm",
@@ -78,8 +78,8 @@ struct OnboardingIntroView: View {
                                 requestNotificationPermission()
                             }
                         }
-                        .transition(.opacity.combined(with: .scale))
                     }
+                    .transition(.opacity.combined(with: .scale))
                 }
                 .padding(.top, 50)
                 .animation(.easeOut(duration: 0.9), value: [showBox1, showBox2, showBox3, showArrow2, showArrow3, showNextButton])
@@ -118,19 +118,19 @@ struct OnboardingIntroView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             showBox1 = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             showArrow2 = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.4) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
             showBox2 = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             showArrow3 = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.8) {
             showBox3 = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 7.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
             withAnimation {
                 showNextButton = true
             }

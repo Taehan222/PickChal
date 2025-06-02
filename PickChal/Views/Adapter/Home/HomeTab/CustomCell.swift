@@ -10,14 +10,14 @@ import FSCalendar
 class CustomCell: FSCalendarCell {
     private let selectionLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
-        layer.fillColor = UIColor.systemBlue.cgColor // 기본은 파란색 배경
+        layer.fillColor = UIColor.systemBlue.cgColor
         layer.isHidden = true
         return layer
     }()
 
     private let todayLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
-        layer.fillColor = UIColor.systemGray5.cgColor // 오늘 날짜의 회색 배경
+        layer.fillColor = UIColor.systemGray5.cgColor
         layer.isHidden = true
         return layer
     }()

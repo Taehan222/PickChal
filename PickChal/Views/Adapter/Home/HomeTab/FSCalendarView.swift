@@ -23,7 +23,7 @@ struct CalendarView: UIViewRepresentable {
         calendar.appearance.weekdayFont = UIFont.boldSystemFont(ofSize: 14)
         calendar.appearance.weekdayTextColor = .black
         calendar.appearance.titleFont = UIFont.systemFont(ofSize: 16, weight: .regular)
-        calendar.appearance.titleDefaultColor = .label
+        calendar.appearance.titleDefaultColor = .black // ✅ 기본은 블랙
         calendar.locale = Locale(identifier: "ko_KR")
         calendar.firstWeekday = 1
         calendar.placeholderType = .none
@@ -31,11 +31,24 @@ struct CalendarView: UIViewRepresentable {
         calendar.scopeGesture.isEnabled = true
 
         calendar.register(CustomCell.self, forCellReuseIdentifier: "cell")
+
+        applyTheme(to: calendar)
+
         return calendar
     }
 
     func updateUIView(_ uiView: FSCalendar, context: Context) {
         uiView.select(selectedDate)
+        applyTheme(to: uiView)
+    }
+
+    private func applyTheme(to calendar: FSCalendar) {
+        let theme = themeManager.currentTheme
+        calendar.appearance.todayColor = theme.accentColor.uiColor
+        calendar.appearance.selectionColor = theme.accentColor.uiColor.withAlphaComponent(0.3)
+        calendar.appearance.weekdayFont = UIFont.boldSystemFont(ofSize: 14)
+        calendar.appearance.weekdayTextColor = .black
+        calendar.appearance.titleFont = UIFont.systemFont(ofSize: 16, weight: .regular)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -53,26 +66,14 @@ struct CalendarView: UIViewRepresentable {
 
         func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
             parent.selectedDate = date
-            calendar.reloadData()
         }
 
-        // 숫자 색상 처리
+        // ✅ 기본 색상은 블랙, 오늘/선택된 날짜는 흰색
         func calendar(_ calendar: FSCalendar, appearance: FSCalendarAppearance, titleDefaultColorFor date: Date) -> UIColor? {
-            let isToday = Calendar.current.isDateInToday(date)
-            let isSelected = Calendar.current.isDate(date, inSameDayAs: parent.selectedDate)
-            if isToday {
-                return .systemBlue // 오늘 날짜는 파란색
-            } else if isSelected {
-                return .white // 선택된 날짜는 흰색
+            if Calendar.current.isDateInToday(date) || Calendar.current.isDate(date, inSameDayAs: parent.selectedDate) {
+                return .white
             }
-            return nil // 기본 색상
-        }
-        
-        func calendar(_ calendar: FSCalendar, appearance: FSCalendarAppearance, titleSelectionColorFor date: Date) -> UIColor? {
-            if Calendar.current.isDateInToday(date) {
-                return .systemBlue // 오늘 날짜 선택 시 파란색
-            }
-            return .white // 기본적으로 흰색
+            return .black
         }
 
         func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
@@ -81,13 +82,19 @@ struct CalendarView: UIViewRepresentable {
             }
         }
 
-        // 셀별로 배경 스타일 설정
         func calendar(_ calendar: FSCalendar, cellFor date: Date, at monthPosition: FSCalendarMonthPosition) -> FSCalendarCell {
             let cell = calendar.dequeueReusableCell(withIdentifier: "cell", for: date, at: monthPosition) as! CustomCell
             let isToday = Calendar.current.isDateInToday(date)
             let isSelected = Calendar.current.isDate(date, inSameDayAs: parent.selectedDate)
+            let theme = parent.themeManager.currentTheme
             cell.showSelection(isSelected, isToday: isToday, theme: theme)
             return cell
         }
+    }
+}
+
+extension Color {
+    var uiColor: UIColor {
+        UIColor(self)
     }
 }
