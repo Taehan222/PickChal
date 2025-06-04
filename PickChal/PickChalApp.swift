@@ -34,10 +34,10 @@ struct PickChalApp: App {
                         .transition(.move(edge: .trailing))
                     }
                 }
-                // 인트로 뷰 완료되면 추천탭으로 자동 이동
+                // 인트로 뷰 완료되면 홈으로 자동 이동
                 .onAppear {
                     if onboardingCompleted {
-                        tabManager.switchToTab(.recommend)
+                        tabManager.switchToTab(.home)
                     }
                 }
                 // 앱 실행 시 알림 뱃지 초기화

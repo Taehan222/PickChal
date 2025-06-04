@@ -3,7 +3,7 @@ import Foundation
 final class TabSelectionManager: ObservableObject {
     static let shared = TabSelectionManager()
 
-    @Published var selectedTab: Int = AppTab.recommend.rawValue
+    @Published var selectedTab: Int = AppTab.home.rawValue
 
     func switchToTab(_ tab: AppTab) {
         selectedTab = tab.rawValue

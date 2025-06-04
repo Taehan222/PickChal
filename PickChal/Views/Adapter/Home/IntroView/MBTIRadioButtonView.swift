@@ -9,7 +9,8 @@ import SwiftUI
 
 struct MBTIRadioButtonView: View {
     @ObservedObject var viewModel: OnboardingVM
-
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let mbtiPairs: [[(abbreviation: String, meaning: String)]] = [
         [("I", "Introversion"), ("E", "Extroversion")],
         [("N", "Intuition"), ("S", "Sensing")],
@@ -29,82 +30,87 @@ struct MBTIRadioButtonView: View {
     ]
     
     @State private var selections: [String?] = Array(repeating: nil, count: 4)
-    @State private var navigateNext = false
-    
-    // 애니메이션용 showRow 배열
     @State private var showRow: [Bool] = [false, false, false, false]
     
+    @AppStorage("onboardingCompleted") private var onboardingCompleted: Bool = false
+    
     var body: some View {
-        NavigationStack {
-            GeometryReader { geo in
-                VStack(spacing: 16) {
-                    Text("당신의 MBTI 성향을 선택하세요")
-                        .font(.title)
-                        .bold()
-                        .padding(.bottom, 16)
-                    
-                    VStack(spacing: 12) {
-                        ForEach(0..<mbtiPairs.count, id: \.self) { row in
-                            if showRow[row] {
-                                RowView(
-                                    row: row,
-                                    selections: $selections,
-                                    mbtiPairs: mbtiPairs,
-                                    pastelColors: pastelColors,
-                                    geo: geo
-                                )
-                                .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: showRow[row])
-                            }
+        GeometryReader { geo in
+            VStack(spacing: 16) {
+                Text("당신의 MBTI 성향을 선택하세요")
+                    .font(.title)
+                    .bold()
+                    .padding(.bottom, 16)
+                
+                VStack(spacing: 12) {
+                    ForEach(0..<mbtiPairs.count, id: \.self) { row in
+                        if showRow[row] {
+                            RowView(
+                                row: row,
+                                selections: $selections,
+                                mbtiPairs: mbtiPairs,
+                                pastelColors: pastelColors,
+                                geo: geo
+                            )
+                            .transition(.opacity)
+                            .animation(.easeInOut(duration: 0.3), value: showRow[row])
                         }
                     }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer()
-                    
-                    if selections.allSatisfy({ $0 != nil }) {
-                        NavigationLink(
-                            destination: OnboardingGoalView()
-                                .environmentObject(viewModel),
-                            isActive: $navigateNext
-                        ) {
-                            Button {
-                                let mbti = selections.compactMap { $0 }.joined()
-                                print("선택한 MBTI: \(mbti)")
-                                if let finalMBTI = MBTIType(rawValue: mbti) {
-                                    viewModel.mbti = finalMBTI
-                                } else {
-                                    viewModel.mbti = .INTJ
-                                }
-                                navigateNext = true
-                            } label: {
-                                HStack {
-                                    Text("다음")
-                                        .font(.headline)
-                                    Image(systemName: "arrow.right")
-                                }
-                                .foregroundColor(.black)
-                                .frame(maxWidth: geo.size.width - 40, minHeight: 50)
-                                .background(Color(red: 250/255, green: 250/255, blue: 250/255))
-                                .cornerRadius(20)
-                                .padding(.horizontal, 20)
-                            }
-                            .transition(.opacity.combined(with: .scale))
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer()
+                
+                if selections.allSatisfy({ $0 != nil }) {
+                    Button {
+                        let mbti = selections.compactMap { $0 }.joined()
+                        print("선택한 MBTI: \(mbti)")
+                        viewModel.mbti = MBTIType(rawValue: mbti) ?? .INTJ
+                        
+                        let context = CoreDataManager.shared.container.viewContext
+                        let profile = UserProfile(context: context)
+                        profile.id = UUID()
+                        profile.mbti = viewModel.mbti?.rawValue
+                        profile.onboardingCompleted = true
+                        profile.year = 2001
+                        profile.goal = ""
+                        
+                        do {
+                            try context.save()
+                            print("사용자 프로필 저장됨")
+                        } catch {
+                            print("사용자 프로필 저장 실패: \(error.localizedDescription)")
                         }
-                        .padding(.bottom, 20)
-                        .animation(.easeInOut, value: selections)
+                        
+                        onboardingCompleted = true
+                        TabSelectionManager.shared.switchToTab(.home)
+                        
+                    } label: {
+                        HStack {
+                            Text("다음")
+                                .font(.headline)
+                            Image(systemName: "arrow.right")
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: geo.size.width - 40, minHeight: 50)
+                        .background(Color(red: 250/255, green: 250/255, blue: 250/255))
+                        .cornerRadius(20)
+                        .padding(.horizontal, 20)
                     }
+                    .transition(.opacity.combined(with: .scale))
+                    .padding(.bottom, 20)
+                    .animation(.easeInOut, value: selections)
                 }
-                .padding(.vertical, 20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                .onAppear {
-                    showRowsSequentially()
-                }
+            }
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+            .onAppear {
+                showRowsSequentially()
             }
         }
     }
-
+    
     func showRowsSequentially() {
         for i in 0..<showRow.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.4) {

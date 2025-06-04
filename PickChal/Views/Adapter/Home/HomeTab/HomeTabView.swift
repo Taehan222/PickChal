@@ -27,7 +27,7 @@ struct HomeTabView: View {
                         logs: logsForDate.filter { !$0.completed },
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
-                        iconColor: themeManager.currentTheme.accentColor,
+                        iconColor: .blue,
                         showButton: true
                     ) { log in
                         tabViewModel.showCompletionAlert(for: log.id ?? UUID())
