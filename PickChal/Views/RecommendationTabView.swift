@@ -17,84 +17,96 @@ struct RecommendationTabView: View {
     @State private var showOnboardingGoal = false
     @State private var userGoal: String = ""
 
-    @FetchRequest(
-        entity: UserProfile.entity(),
-        sortDescriptors: []
-    ) private var profiles: FetchedResults<UserProfile>
+    @FetchRequest(entity: UserProfile.entity(), sortDescriptors: []) private var profiles: FetchedResults<UserProfile>
 
     var body: some View {
         NavigationView {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("추천 로딩 중...")
-                } else if let error = viewModel.errorMessage {
-                    ScrollView {
-                        Text(error)
-                            .foregroundColor(.red)
-                            .padding()
-                    }
-                } else {
-                    ScrollView {
-                        if viewModel.recommendations.isEmpty {
-                            Text("더이상 챌린지가 없습니다")
-                                .font(.title3)
-                                .foregroundColor(.gray)
-                                .padding(.top, 100)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else {
-                            VStack(spacing: 16) {
-                                ForEach(Array(viewModel.recommendations.enumerated()), id: \.1.id) { index, rec in
-                                    CardView(
-                                        title: rec.title,
-                                        subtitle: rec.descriptionText,
-                                        iconName: rec.iconName,
-                                        iconColorName: rec.iconColor
-                                    )
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 16)
-                                    .onTapGesture {
-                                        selectedChallenge = rec
-                                    }
-                                    .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
-                                    .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
-                                    .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top)
+            contentView
+                .navigationTitle("챌린지 추천")
+                .sheet(item: $selectedChallenge) { challenge in
+                    ChallengeDetailModalView(challenge: challenge) {
+                        if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
+                            viewModel.recommendations.remove(at: index)
+                            showCards.remove(at: index)
                         }
+                        selectedChallenge = nil
                     }
-
                 }
-            }
-            .navigationTitle("챌린지 추천")
-            .sheet(item: $selectedChallenge) { challenge in
-                ChallengeDetailModalView(challenge: challenge) {
-                    if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
-                        viewModel.recommendations.remove(at: index)
-                        showCards.remove(at: index)
+                .onChange(of: tabManager.selectedTab) { newTab in
+                    if newTab == AppTab.recommend.rawValue {
+                        showOnboardingGoal = true
                     }
-                    selectedChallenge = nil
                 }
-            }
-            .onChange(of: tabManager.selectedTab) { newTab in
-                if newTab == AppTab.recommend.rawValue {
-                    showOnboardingGoal = true
+                .fullScreenCover(isPresented: $showOnboardingGoal) {
+                    OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
+                        userGoal = goal
+                        saveGoalToUserProfile(goal)
+                        loadRecommendations(goal: goal)
+                    }
                 }
-            }
-            .fullScreenCover(isPresented: $showOnboardingGoal) {
-                OnboardingGoalViewWrapper { goal in
-                    userGoal = goal
-                    saveGoalToUserProfile(goal)
-                    loadRecommendations(goal: goal)
-                }
-            }
         }
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
     }
 
+    @ViewBuilder
+    private var contentView: some View {
+        Group {
+            if viewModel.isLoading {
+                ProgressView("추천 로딩 중...")
+            } else if let error = viewModel.errorMessage {
+                errorView(error)
+            } else {
+                recommendationsScrollView
+            }
+        }
+    }
+
+    private func errorView(_ error: String) -> some View {
+        ScrollView {
+            Text(error)
+                .foregroundColor(.red)
+                .padding()
+        }
+    }
+
+    private var recommendationsScrollView: some View {
+        ScrollView {
+            if viewModel.recommendations.isEmpty {
+                Text("더이상 챌린지가 없습니다")
+                    .font(.title3)
+                    .foregroundColor(.gray)
+                    .padding(.top, 100)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(spacing: 16) {
+                    ForEach(Array(viewModel.recommendations.enumerated()), id: \.1.id) { index, rec in
+                        CardView(
+                            title: rec.title,
+                            subtitle: rec.descriptionText,
+                            iconName: rec.iconName,
+                            iconColorName: rec.iconColor
+                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .onTapGesture {
+                            selectedChallenge = rec
+                        }
+                        .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
+                        .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
+                        .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top)
+            }
+        }
+    }
+
     private func saveGoalToUserProfile(_ goal: String) {
-        guard let profile = profiles.first else { return }
+        guard let profile = profiles.first else {
+            print("프로필이 없습니다.")
+            return
+        }
         profile.goal = goal
         do {
             try CoreDataManager.shared.container.viewContext.save()
@@ -117,7 +129,9 @@ struct RecommendationTabView: View {
             isOnboardingCompleted: profile.onboardingCompleted
         )
         Task {
+            print("GPT 호출 준비: \(user)")
             await viewModel.load(user: user)
+            print("GPT 응답: \(viewModel.recommendations)")
             showCards = Array(repeating: false, count: viewModel.recommendations.count)
             for i in showCards.indices {
                 try? await Task.sleep(nanoseconds: 200_000_000)

@@ -13,7 +13,7 @@ struct CardView: View {
     var iconName: String? = nil
     var iconColorName: String? = nil
     var backgroundColor: Color = Theme.Colors.background
-    
+
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
@@ -21,20 +21,24 @@ struct CardView: View {
             if let iconName = iconName {
                 Image(systemName: iconName)
                     .font(.title2)
-                    .foregroundColor(Color.from(name: iconColorName) == .primary ? themeManager.currentTheme.accentColor : Color.from(name: iconColorName))
+                    .foregroundColor(
+                        Color.from(name: iconColorName) == .primary
+                        ? themeManager.currentTheme.accentColor
+                        : Color.from(name: iconColorName)
+                    )
             }
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(title)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 Text(subtitle)
                     .font(.system(size: 14))
-                    .foregroundColor(Theme.Colors.gray)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(Theme.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Color(.systemBackground))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
