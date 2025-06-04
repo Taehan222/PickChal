@@ -13,33 +13,64 @@ class RecommendationViewModel: ObservableObject {
     @Published var recommendations: [RecommendationModel] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var containsInvalidRecommendation: Bool = false
 
     private let chatService = RecommendationChatGPT()
+    
+    private var streamingTask: Task<Void, Never>? = nil
 
     func streamLoad(user: UserModel) async {
+        streamingTask?.cancel()
+        
         isLoading = true
         errorMessage = nil
         recommendations = []
+        containsInvalidRecommendation = false
 
         var buffer = ""
 
-        do {
-            try await chatService.streamRecommend(user: user) { partial in
-                buffer += partial
+        streamingTask = Task {
+            do {
+                try await chatService.streamRecommend(user: user) { partial in
+                    if Task.isCancelled {
+                        return
+                    }
+                    buffer += partial
 
-                while let (objectString, rest) = self.extractNextJSONObject(from: buffer) {
-                    buffer = rest
-                    if let data = objectString.data(using: .utf8),
-                       let model = try? JSONDecoder().decode(RecommendationModel.self, from: data) {
-                        self.recommendations.append(model)
+                    while let (objectString, rest) = self.extractNextJSONObject(from: buffer) {
+                        buffer = rest
+                        if let data = objectString.data(using: .utf8) {
+                            if let model = try? JSONDecoder().decode(RecommendationModel.self, from: data) {
+                                if model.title == "잘못된 목표입니다" {
+                                    self.containsInvalidRecommendation = true
+                                    self.streamingTask?.cancel()
+                                    return
+                                }
+                                self.recommendations.append(model)
+                            }
+                        }
                     }
                 }
+            } catch {
+                if !Task.isCancelled {
+                    self.errorMessage = "불러오기 실패: \(error.localizedDescription)"
+                }
             }
-        } catch {
-            self.errorMessage = "불러오기 실패: \(error.localizedDescription)"
+            isLoading = false
+            streamingTask = nil
         }
-
+        
+        await streamingTask?.value
+    }
+    
+    func cancelStreaming() {
+        streamingTask?.cancel()
+        streamingTask = nil
+        
         isLoading = false
+        errorMessage = nil
+        recommendations = []
+        containsInvalidRecommendation = false
     }
 
     private func extractNextJSONObject(from text: String) -> (String, String)? {

@@ -8,7 +8,6 @@
 import Foundation
 import ChatGPTSwift
 
-
 class RecommendationChatGPT {
     private let apiKey: String = {
         let key = ""
@@ -50,11 +49,27 @@ class RecommendationChatGPT {
         
         let userJSON = try encodeUser(user)
         let prompt = """
-             예시데이터: \(mockJSON)
-             위의 예시 데이터처럼 id, title, subTitle, descriptionText, category, alarmTime, iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days(예: 3,5,7) 필드를 가진 챌린지를 사용자정보: \(userJSON) 기반으로 목표에 관련된 챌린지만 6개 추천해서 JSON 배열로 순수하게 출력해줘.
-             JSON 배열 외 다른 텍스트는 절대 포함하지 마세요.
-             descriptionText는 '첫날:', '둘째 날:' 형식으로 작성하고 점진적으로 이어지게 해줘.
-             """
+        예시 데이터: \(mockJSON)
+
+        당신은 챌린지 추천 전문가입니다. 아래 사용자 정보와 목표를 기반으로 사용자에게 적합한 챌린지를 추천하세요.
+
+        - 출력은 반드시 JSON 배열 형식만으로 출력하세요.
+        - JSON 외에는 절대 아무것도 출력하지 마세요. 주석, 설명, 인사말 등도 포함 금지입니다.
+        - 각 챌린지 항목은 다음 필드를 포함해야 합니다:
+          - id, title, subTitle, descriptionText, category, alarmTime, iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days(예: 3,5,7)
+        - descriptionText는 다음 형식으로 작성하세요:
+          - 첫날: ~
+          - 둘째 날: ~
+          - 셋째 날: ~ (등 점진적으로 이어짐)
+        - 추천할 챌린지 수는 6개입니다.
+
+        단, 아래 사용자 목표가 단어 하나이거나 추상적이거나 실현 불가능한 경우(예: '행복', '천국 가기', '아이스크림이 될래')라면,
+        챌린지를 1개만 생성하고 다음 조건을 따르세요:
+          - title은 반드시 '잘못된 목표입니다'로 설정
+          - 나머지 필드는 비워도 되며, JSON 배열 형식은 유지해야 합니다.
+
+        사용자 정보: \(userJSON)
+        """
         
         
         for try await message in await try api.sendMessageStream(text: prompt) {

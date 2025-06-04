@@ -13,23 +13,26 @@ struct RecommendationTabView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var tabManager: TabSelectionManager
     @StateObject private var viewModel = RecommendationViewModel()
+    
     @State private var showCards: [Bool] = []
     @State private var selectedChallenge: RecommendationModel? = nil
     @State private var showOnboardingGoal = false
     @State private var userGoal: String = ""
+    @State private var showResetMessage = false
+    @State private var reloadTrigger = UUID()
     
     @FetchRequest(entity: UserProfile.entity(), sortDescriptors: []) private var profiles: FetchedResults<UserProfile>
     
     var body: some View {
         NavigationView {
             contentView
+                .id(reloadTrigger)
                 .navigationTitle("챌린지 추천")
                 .sheet(item: $selectedChallenge) { challenge in
                     ChallengeDetailModalView(challenge: challenge) {
                         if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
                             viewModel.recommendations.remove(at: index)
                             showCards.remove(at: index)
-
                         }
                         selectedChallenge = nil
                     }
@@ -39,21 +42,28 @@ struct RecommendationTabView: View {
                         showOnboardingGoal = true
                     }
                 }
-
                 .onChange(of: tabManager.selectedTab) { newTab in
                     if newTab == AppTab.recommend.rawValue {
                         showOnboardingGoal = true
+                    } else {
+                        viewModel.cancelStreaming()
+                        resetState()
+                    }
+                }
+                .onChange(of: viewModel.containsInvalidRecommendation) { isInvalid in
+                    if isInvalid {
+                        showResetMessage = true
+                        viewModel.containsInvalidRecommendation = false
                     }
                 }
                 .fullScreenCover(isPresented: $showOnboardingGoal) {
-                    
                     ZStack(alignment: .topTrailing) {
                         OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
                             userGoal = goal
                             saveGoalToUserProfile(goal)
                             loadRecommendations(goal: goal)
                         }
-                        
+
                         Button(action: {
                             showOnboardingGoal = false
                             tabManager.selectedTab = AppTab.home.rawValue
@@ -67,6 +77,50 @@ struct RecommendationTabView: View {
                 }
         }
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
+        .overlay(
+            Group {
+                if showResetMessage {
+                    VStack {
+                        HStack {
+                            Text("잘못된 목표입니다. 목표를 다시 입력해주세요.")
+                                .foregroundColor(.white)
+                                .padding(.leading, 16)
+                            Spacer()
+                            Button(action: {
+                                withAnimation {
+                                    showResetMessage = false
+                                    reloadTrigger = UUID()
+                                    showOnboardingGoal = true
+                                }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                                    .padding(.trailing, 16)
+                            }
+                        }
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.85))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                    .padding(.top, 100)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(1)
+                }
+            }
+        )
+    }
+    
+    private func resetState() {
+        viewModel.recommendations = []
+        showCards = []
+        selectedChallenge = nil
+        showOnboardingGoal = false
+        userGoal = ""
+        showResetMessage = false
+        reloadTrigger = UUID()
     }
     
     @ViewBuilder
@@ -105,7 +159,7 @@ struct RecommendationTabView: View {
                     .padding(.horizontal, 16)
                     .transition(.opacity)
                 }
-                
+
                 if viewModel.isLoading {
                     ProgressView()
                         .padding()
@@ -115,9 +169,7 @@ struct RecommendationTabView: View {
             .animation(.easeOut(duration: 0.5), value: viewModel.recommendations)
         }
     }
-    
-    
-    
+
     private func saveGoalToUserProfile(_ goal: String) {
         guard let profile = profiles.first else { return }
         profile.goal = goal
@@ -127,7 +179,7 @@ struct RecommendationTabView: View {
             print("사용자 목표 저장 실패: \(error.localizedDescription)")
         }
     }
-    
+
     private func loadRecommendations(goal: String) {
         guard let profile = profiles.first else { return }
         let user = UserModel(
