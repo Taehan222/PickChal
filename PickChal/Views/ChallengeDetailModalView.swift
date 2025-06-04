@@ -37,25 +37,26 @@ struct ChallengeDetailModalView: View {
                         .frame(width: 60, height: 60)
                         .padding()
                         .foregroundColor(Color.from(name: challenge.iconColor))
+
                     Text(challenge.title)
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
 
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(Array(dailyDescriptions.enumerated()), id: \.0) { index, desc in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Day \(index + 1)")
                                     .font(.headline)
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
 
                                 Text(desc)
                                     .font(.body)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white)
+                            .background(Color(.systemBackground))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(themeManager.currentTheme.accentColor, lineWidth: 3)
@@ -65,7 +66,7 @@ struct ChallengeDetailModalView: View {
                     }
                     .padding(.horizontal)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
+
                     Button(action: {
                         saveViewModel.saveChallenge(from: challenge)
                         dismiss()
@@ -86,6 +87,6 @@ struct ChallengeDetailModalView: View {
                 .padding()
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(.systemBackground).ignoresSafeArea())
     }
 }
