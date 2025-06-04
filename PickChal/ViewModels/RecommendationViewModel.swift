@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 @MainActor
 class RecommendationViewModel: ObservableObject {
@@ -15,32 +16,40 @@ class RecommendationViewModel: ObservableObject {
 
     private let chatService = RecommendationChatGPT()
 
-    private func extractJSONArray(from text: String) -> String? {
-        guard let start = text.firstIndex(of: "["),
-              let end = text.lastIndex(of: "]") else {
-            return nil
-        }
-        return String(text[start...end])
-    }
-
-    func load(user: UserModel) async {
+    func streamLoad(user: UserModel) async {
         isLoading = true
         errorMessage = nil
+        recommendations = []
+
+        var buffer = ""
+
         do {
-            let raw = try await chatService.recommend(user: user)
-            print("ChatGPT응답: " + raw)
-            
-            guard let jsonArrayString = extractJSONArray(from: raw),
-                  let data = jsonArrayString.data(using: .utf8) else {
-                throw URLError(.cannotParseResponse)
+            try await chatService.streamRecommend(user: user) { partial in
+                buffer += partial
+
+                while let (objectString, rest) = self.extractNextJSONObject(from: buffer) {
+                    buffer = rest
+                    if let data = objectString.data(using: .utf8),
+                       let model = try? JSONDecoder().decode(RecommendationModel.self, from: data) {
+                        self.recommendations.append(model)
+                    }
+                }
             }
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            let recs = try decoder.decode([RecommendationModel].self, from: data)
-            recommendations = recs
         } catch {
-            errorMessage = "불러오기 실패: \(error.localizedDescription)"
+            self.errorMessage = "불러오기 실패: \(error.localizedDescription)"
         }
+
         isLoading = false
+    }
+
+    private func extractNextJSONObject(from text: String) -> (String, String)? {
+        guard let startIndex = text.firstIndex(of: "{"),
+              let endIndex = text[startIndex...].firstIndex(of: "}") else {
+            return nil
+        }
+
+        let objectText = String(text[startIndex...endIndex])
+        let remainingText = String(text[text.index(after: endIndex)...])
+        return (objectText, remainingText)
     }
 }

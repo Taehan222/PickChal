@@ -7,6 +7,7 @@
 
 import SwiftUI
 import ChatGPTSwift
+import CoreData
 
 struct RecommendationTabView: View {
     @EnvironmentObject var themeManager: ThemeManager
@@ -16,9 +17,9 @@ struct RecommendationTabView: View {
     @State private var selectedChallenge: RecommendationModel? = nil
     @State private var showOnboardingGoal = false
     @State private var userGoal: String = ""
-
+    
     @FetchRequest(entity: UserProfile.entity(), sortDescriptors: []) private var profiles: FetchedResults<UserProfile>
-
+    
     var body: some View {
         NavigationView {
             contentView
@@ -28,6 +29,7 @@ struct RecommendationTabView: View {
                         if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
                             viewModel.recommendations.remove(at: index)
                             showCards.remove(at: index)
+
                         }
                         selectedChallenge = nil
                     }
@@ -37,19 +39,21 @@ struct RecommendationTabView: View {
                         showOnboardingGoal = true
                     }
                 }
+
                 .onChange(of: tabManager.selectedTab) { newTab in
                     if newTab == AppTab.recommend.rawValue {
                         showOnboardingGoal = true
                     }
                 }
                 .fullScreenCover(isPresented: $showOnboardingGoal) {
+                    
                     ZStack(alignment: .topTrailing) {
                         OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
                             userGoal = goal
                             saveGoalToUserProfile(goal)
                             loadRecommendations(goal: goal)
                         }
-
+                        
                         Button(action: {
                             showOnboardingGoal = false
                             tabManager.selectedTab = AppTab.home.rawValue
@@ -64,20 +68,18 @@ struct RecommendationTabView: View {
         }
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
     }
-
+    
     @ViewBuilder
     private var contentView: some View {
         Group {
-            if viewModel.isLoading {
-                ProgressView("추천 로딩 중...")
-            } else if let error = viewModel.errorMessage {
+            if let error = viewModel.errorMessage {
                 errorView(error)
             } else {
                 recommendationsScrollView
             }
         }
     }
-
+    
     private func errorView(_ error: String) -> some View {
         ScrollView {
             Text(error)
@@ -85,59 +87,49 @@ struct RecommendationTabView: View {
                 .padding()
         }
     }
-
+    
     private var recommendationsScrollView: some View {
         ScrollView {
-            if viewModel.recommendations.isEmpty {
-                Text("더이상 챌린지가 없습니다")
-                    .font(.title3)
-                    .foregroundColor(.gray)
-                    .padding(.top, 100)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                VStack(spacing: 16) {
-                    ForEach(Array(viewModel.recommendations.enumerated()), id: \.1.id) { index, rec in
-                        CardView(
-                            title: rec.title,
-                            subtitle: rec.descriptionText,
-                            iconName: rec.iconName,
-                            iconColorName: rec.iconColor
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .onTapGesture {
-                            selectedChallenge = rec
-                        }
-                        .opacity(showCards.indices.contains(index) && showCards[index] ? 1 : 0)
-                        .offset(y: showCards.indices.contains(index) && showCards[index] ? 0 : 20)
-                        .animation(.easeOut.delay(Double(index) * 0.2), value: showCards)
+            VStack(spacing: 16) {
+                ForEach(viewModel.recommendations) { rec in
+                    CardView(
+                        title: rec.title,
+                        subtitle: rec.descriptionText,
+                        iconName: rec.iconName,
+                        iconColorName: rec.iconColor
+                    )
+                    .onTapGesture {
+                        selectedChallenge = rec
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .transition(.opacity)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top)
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .padding()
+                }
             }
+            .padding(.top)
+            .animation(.easeOut(duration: 0.5), value: viewModel.recommendations)
         }
     }
-
+    
+    
+    
     private func saveGoalToUserProfile(_ goal: String) {
-        guard let profile = profiles.first else {
-            print("프로필이 없습니다.")
-            return
-        }
+        guard let profile = profiles.first else { return }
         profile.goal = goal
         do {
             try CoreDataManager.shared.container.viewContext.save()
-            print("사용자 목표 저장 완료: \(goal)")
         } catch {
             print("사용자 목표 저장 실패: \(error.localizedDescription)")
         }
     }
-
+    
     private func loadRecommendations(goal: String) {
-        guard let profile = profiles.first else {
-            print("프로필이 없습니다.")
-            return
-        }
+        guard let profile = profiles.first else { return }
         let user = UserModel(
             year: Int(profile.year),
             mbti: MBTIType(rawValue: profile.mbti ?? "") ?? .INTJ,
@@ -146,17 +138,11 @@ struct RecommendationTabView: View {
             isOnboardingCompleted: profile.onboardingCompleted
         )
         Task {
-            print("GPT 호출 준비: \(user)")
-            await viewModel.load(user: user)
-            print("GPT 응답: \(viewModel.recommendations)")
-            showCards = Array(repeating: false, count: viewModel.recommendations.count)
-            for i in showCards.indices {
-                try? await Task.sleep(nanoseconds: 200_000_000)
-                showCards[i] = true
-            }
+            await viewModel.streamLoad(user: user)
         }
     }
 }
+
 
 #Preview {
     RecommendationTabView()

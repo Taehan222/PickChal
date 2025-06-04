@@ -56,14 +56,15 @@ struct ChallengeLogModel: Identifiable {
 }
 
 // MARK: 챌린지 추천 모델
-struct RecommendationModel: Identifiable, Decodable {
+struct RecommendationModel: Identifiable, Decodable, Equatable {
     let id: UUID
     let title: String
     let descriptionText: String
     let iconName: String
-    let iconColor: String?      // 새로 추가된 필드 (옵셔널)
+    let iconColor: String?
     let category: String
     let alarmTime: Date?
+    
 
     private enum CodingKeys: String, CodingKey {
         case title, descriptionText, iconName, iconColor, id, category, alarmTime
@@ -74,7 +75,7 @@ struct RecommendationModel: Identifiable, Decodable {
         title: String,
         descriptionText: String,
         iconName: String,
-        iconColor: String? = nil,   // 기본값 nil 추가
+        iconColor: String? = nil,
         category: String,
         alarmTime: Date? = nil
     ) {
@@ -98,5 +99,3 @@ struct RecommendationModel: Identifiable, Decodable {
         self.alarmTime = try? c.decode(Date.self, forKey: .alarmTime)
     }
 }
-
-
