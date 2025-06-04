@@ -12,19 +12,17 @@ struct OnboardingGoalViewWrapper: View {
     @State private var showInput = false
     @State private var cardInfos: [BackgroundCardInfo] = []
     @State private var userInput: String = ""
-    
+
     let onGoalEntered: (String) -> Void
 
     private let words: [String] = [
-        "iOS 앱 개발자가 되고 싶어요", "헬스해서 몸을 만들고 싶어요", "밤 낮을 바꾸고 싶어요",
+        "iOS 앱 개발자가 되고 싶어요", "헬스해서 몸을 만들고 싶어요",
         "한달에 책 3권은 완독하고 싶어요", "마음의 안정을 찾고 싶어요",
-        "외국인이랑 대화할 정도의 영어 실력을 갖고 싶어요", "하루에 물 2리터를 꾸준히 마시고 싶어요",
+        "영어 회화를 잘하고 싶어요", "하루에 물 2리터를 꾸준히 마시고 싶어요",
         "매일 명상을 실천해보고 싶어요", "더 나은 식습관을 만들고 싶어요",
         "자기 전에 일기를 써보고 싶어요", "하루에 30분씩 운동을 하고 싶어요",
-        "6시에 일어나서 하루를 시작하고 싶어요", "나를 사랑하고 싶어요",
-        "SNS 사용 시간을 줄이고 싶어요", "새로운 취미를 찾고 싶어요",
-        "졸려요", "배고파요", "무슨 말을 더 써야할까요", "쓸 말이 이젠 없어요",
-        "나중에 GPT로 더 뽑아야겠어요", "이 정도면 꽉 차겠죠"
+        "6시에 일어나서 하루를 시작하고 싶어요", "SNS 사용 시간을 줄이고 싶어요",
+        "새로운 취미를 찾고 싶어요", "미라클 모닝을 실천하고 싶어요", "피부가 좋아지는 습관을 만들고 싶어요"
     ]
 
     var body: some View {
@@ -34,7 +32,7 @@ struct OnboardingGoalViewWrapper: View {
                     .position(info.position)
                     .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: info.position)
             }
-        
+
             VStack(spacing: 20) {
                 Text("당신은 무엇을 이루고 싶나요?")
                     .font(.headline)
@@ -43,12 +41,21 @@ struct OnboardingGoalViewWrapper: View {
 
                 if showInput {
                     VStack(spacing: 16) {
-                        TextField("이루고 싶은 것을 입력해보세요", text: $userInput)
-                            .padding()
-                            .frame(width: 260)
-                            .background(Color.white)
-                            .cornerRadius(10)
-                            .shadow(color: .gray.opacity(0.3), radius: 4, x: 0, y: 2)
+                        ZStack(alignment: .leading) {
+                            if userInput.isEmpty {
+                                Text("이루고 싶은 것을 입력해보세요")
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 12)
+                            }
+
+                            TextField("", text: $userInput)
+                                .padding()
+                                .frame(width: 260)
+                                .background(Color.gray.opacity(0.05))
+                                .cornerRadius(10)
+                                .foregroundColor(.black)
+                                .shadow(color: .gray.opacity(0.3), radius: 4, x: 0, y: 2)
+                        }
 
                         Button("확인") {
                             onGoalEntered(userInput)

@@ -48,6 +48,7 @@ struct HomeTabView: View {
             Spacer()
         }
         .padding(.vertical)
+        .background(Color(.systemBackground))
         .alert("챌린지를 완료했나요?", isPresented: $tabViewModel.showAlert) {
             Button("완료") {
                 if let id = tabViewModel.selectedChallengeID,
@@ -56,7 +57,6 @@ struct HomeTabView: View {
                     let context = CoreDataManager.shared.container.viewContext
                     log.completed = true
 
-                    // challenge의 모든 log가 완료됐는지 확인
                     let fetchRequest: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
                     fetchRequest.predicate = NSPredicate(format: "challenge == %@", challenge)
                     do {
@@ -75,7 +75,6 @@ struct HomeTabView: View {
         }
     }
 
-    // 공통 섹션 뷰
     func section(
         title: String,
         logs: [ChallengeLog],
@@ -88,7 +87,7 @@ struct HomeTabView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(themeManager.currentTheme.font)
-                .foregroundColor(.black)
+                .foregroundColor(Color.primary)
                 .padding(.leading)
             if logs.isEmpty {
                 emptyLabel(text: emptyMessage)
@@ -104,16 +103,15 @@ struct HomeTabView: View {
         }
     }
 
-    // 비어있을 때 라벨
     func emptyLabel(text: String) -> some View {
         HStack {
             Text(text)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .font(.subheadline)
             Spacer()
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -122,7 +120,6 @@ struct HomeTabView: View {
         .padding(.horizontal)
     }
 
-    // 챌린지 카드 뷰
     func challengeCard(
         log: ChallengeLog,
         icon: String,
@@ -137,10 +134,10 @@ struct HomeTabView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(challengeTitle)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(Color.primary)
                 Text(logDescription)
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
             Spacer()
             if showButton {
@@ -152,7 +149,7 @@ struct HomeTabView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
