@@ -32,16 +32,32 @@ struct RecommendationTabView: View {
                         selectedChallenge = nil
                     }
                 }
+                .onAppear {
+                    if tabManager.selectedTab == AppTab.recommend.rawValue {
+                        showOnboardingGoal = true
+                    }
+                }
                 .onChange(of: tabManager.selectedTab) { newTab in
                     if newTab == AppTab.recommend.rawValue {
                         showOnboardingGoal = true
                     }
                 }
                 .fullScreenCover(isPresented: $showOnboardingGoal) {
-                    OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
-                        userGoal = goal
-                        saveGoalToUserProfile(goal)
-                        loadRecommendations(goal: goal)
+                    ZStack(alignment: .topTrailing) {
+                        OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
+                            userGoal = goal
+                            saveGoalToUserProfile(goal)
+                            loadRecommendations(goal: goal)
+                        }
+
+                        Button(action: {
+                            showOnboardingGoal = false
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
                     }
                 }
         }
