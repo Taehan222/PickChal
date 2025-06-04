@@ -34,44 +34,19 @@ struct SettingsTabView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
 
-                    // MARK: - 프로필
-                    if let user = user {
-                        VStack(alignment: .leading, spacing: 16) {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Profile")
-                                    .font(themeManager.currentTheme.font)
-                                    .foregroundColor(themeManager.currentTheme.accentColor)
-
-                                VStack(alignment: .leading, spacing: 8) {
-                                    profileRow(title: "출생", value: "\(user.year)년생")
-                                    profileRow(title: "MBTI", value: user.mbti.rawValue)
-                                    profileRow(title: "우선순위", value: user.priority.rawValue)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("목표")
-                                            .fontWeight(.semibold)
-                                        Text(user.goal)
-                                            .font(.subheadline)
-                                            .foregroundColor(themeManager.currentTheme.accentColor)
-                                    }
-                                    .padding(.top, 6)
-                                }
-                                .padding()
-                                .background(themeManager.currentTheme.backgroundColor)
-                                .cornerRadius(12)
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-
                     // MARK: - 테마 선택
-                    Section(header: Text("테마 선택").font(.headline)) {
-                        Picker("테마", selection: $themeManager.currentTheme) {
-                            ForEach(AppTheme.allCases) { theme in
-                                Text(theme.displayName).tag(theme)
+                    SettingsCard {
+                        VStack(alignment: .leading) {
+                            Text("테마 선택")
+                                .font(.headline)
+                                .foregroundColor(Color.primary)
+                            Picker("테마", selection: $themeManager.currentTheme) {
+                                ForEach(AppTheme.allCases) { theme in
+                                    Text(theme.displayName).tag(theme)
+                                }
                             }
+                            .pickerStyle(.segmented)
                         }
-                        .pickerStyle(.segmented)
                     }
                     .padding(.horizontal)
 
@@ -99,20 +74,6 @@ struct SettingsTabView: View {
                                     NotificationManager.shared.removeAll()
                                 }
                             }
-
-                        SettingsActionRow(title: "테스트 알림 보내기", icon: "paperplane.fill", color: .red) {
-                            if let first = challenges.first {
-                                NotificationManager.shared.scheduleImmediateTestNotification(for: first)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    // MARK: - 계정 관리
-                    VStack(spacing: 12) {
-                        SettingsActionRow(title: "유저 정보 초기화", icon: "trash.fill", color: .red) {
-                            print("초기화 기능은 여기서 구현 가능")
-                        }
                     }
                     .padding(.horizontal)
 
@@ -131,13 +92,30 @@ struct SettingsTabView: View {
     func profileRow(title: String, value: String) -> some View {
         HStack {
             Text(title)
-                .font(themeManager.currentTheme.font)
                 .fontWeight(.semibold)
-                .foregroundColor(themeManager.currentTheme.accentColor)
+                .foregroundColor(Color.primary)
             Spacer()
             Text(value)
-                .foregroundColor(themeManager.currentTheme.accentColor)
+                .foregroundColor(Color.primary)
         }
+    }
+}
+
+struct SettingsCard<Content: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .padding()
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(themeManager.currentTheme.accentColor, lineWidth: 1.5)
+            )
     }
 }
 
@@ -149,43 +127,39 @@ struct SettingsRowCard<Destination: View>: View {
 
     var body: some View {
         NavigationLink(destination: destination()) {
-            HStack {
-                Text(title)
-                    .foregroundColor(themeManager.currentTheme.accentColor)
-                Spacer()
-                Text(detail)
-                    .foregroundColor(themeManager.currentTheme.accentColor)
-                Image(systemName: "chevron.right")
-                    .foregroundColor(themeManager.currentTheme.accentColor)
+            SettingsCard {
+                HStack {
+                    Text(title)
+                        .foregroundColor(Color.primary)
+                    Spacer()
+                    Text(detail)
+                        .foregroundColor(Color.primary)
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color.primary)
+                }
             }
-            .padding()
-            .background(themeManager.currentTheme.backgroundColor)
-            .cornerRadius(12)
         }
     }
 }
 
 struct SettingsToggleRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     @Binding var isOn: Bool
 
     var body: some View {
-        HStack {
-            Text(title)
-                .foregroundColor(themeManager.currentTheme.accentColor)
-            Spacer()
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
+        SettingsCard {
+            HStack {
+                Text(title)
+                    .foregroundColor(Color.primary)
+                Spacer()
+                Toggle("", isOn: $isOn)
+                    .labelsHidden()
+            }
         }
-        .padding()
-        .background(themeManager.currentTheme.backgroundColor)
-        .cornerRadius(12)
     }
 }
 
 struct SettingsActionRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -193,16 +167,15 @@ struct SettingsActionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack {
-                Text(title)
-                    .foregroundColor(color)
-                Spacer()
-                Image(systemName: icon)
-                    .foregroundColor(color)
+            SettingsCard {
+                HStack {
+                    Text(title)
+                        .foregroundColor(Color.primary)
+                    Spacer()
+                    Image(systemName: icon)
+                        .foregroundColor(Color.primary)
+                }
             }
-            .padding()
-            .background(themeManager.currentTheme.backgroundColor)
-            .cornerRadius(12)
         }
     }
 }
