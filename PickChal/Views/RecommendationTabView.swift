@@ -52,6 +52,7 @@ struct RecommendationTabView: View {
 
                         Button(action: {
                             showOnboardingGoal = false
+                            tabManager.selectedTab = AppTab.home.rawValue
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 24))
