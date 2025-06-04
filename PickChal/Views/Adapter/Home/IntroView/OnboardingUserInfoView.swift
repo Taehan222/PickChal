@@ -30,11 +30,11 @@ struct OnboardingUserInfoView: View {
                 VStack(spacing: 4) {
                     Text("성별/연령대를 알려주세요!")
                         .font(.system(size: 25, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
 
                     Text("사용자에게 알맞는 챌린지를 추천해드릴 수 있어요")
                         .font(.system(size: 13))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
 
                 HStack(spacing: 20) {
@@ -54,11 +54,11 @@ struct OnboardingUserInfoView: View {
                                     .frame(width: 80, height: 80)
                                     .overlay(
                                         Text(group.title)
-                                            .foregroundColor(selectedAgeGroup == group.title ? Color.blue : Color.gray)
+                                            .foregroundColor(selectedAgeGroup == group.title ? Color.blue : .secondary)
                                             .font(.system(size: 30, weight: .thin))
                                     )
                                 Text(group.subtitle)
-                                    .foregroundColor(selectedAgeGroup == group.title ? Color.blue : Color.gray)
+                                    .foregroundColor(selectedAgeGroup == group.title ? Color.blue : .secondary)
                                     .font(.system(size: 12))
                             }
                         }
@@ -78,9 +78,9 @@ struct OnboardingUserInfoView: View {
                             .font(.headline)
                         Image(systemName: "arrow.right")
                     }
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(Color(red: 250/255, green: 250/255, blue: 250/255))
+                    .background(Color(.tertiarySystemBackground))
                     .cornerRadius(20)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
@@ -94,7 +94,7 @@ struct OnboardingUserInfoView: View {
                 .padding(.bottom, 40)
             }
             .frame(maxHeight: .infinity)
-            .background(Color.white.ignoresSafeArea())
+            .background(Color(.systemBackground).ignoresSafeArea())
             .navigationDestination(
                 isPresented: $navigateNext,
                 destination: { MBTIRadioButtonView(viewModel: viewModel) }
@@ -109,7 +109,7 @@ struct OnboardingUserInfoView: View {
         }) {
             ZStack {
                 Circle()
-                    .fill(Color.gray.opacity(0.1))
+                    .fill(Color(.tertiarySystemFill))
                     .blur(radius: 2)
                     .allowsHitTesting(false)
 
@@ -118,7 +118,7 @@ struct OnboardingUserInfoView: View {
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(selectedGender == gender ? Color.blue : Color.black.opacity(0.5), lineWidth: 0.5)
+                            .stroke(selectedGender == gender ? Color.blue : Color.primary.opacity(0.3), lineWidth: 0.5)
                     )
             }
             .frame(width: 170, height: 170)

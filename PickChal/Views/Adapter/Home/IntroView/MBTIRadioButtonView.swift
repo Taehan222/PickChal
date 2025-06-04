@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct MBTIRadioButtonView: View {
     @ObservedObject var viewModel: OnboardingVM
     @EnvironmentObject var themeManager: ThemeManager
@@ -40,6 +41,7 @@ struct MBTIRadioButtonView: View {
                 Text("당신의 MBTI 성향을 선택하세요")
                     .font(.title)
                     .bold()
+                    .foregroundColor(.primary)
                     .padding(.bottom, 16)
                 
                 VStack(spacing: 12) {
@@ -91,9 +93,9 @@ struct MBTIRadioButtonView: View {
                                 .font(.headline)
                             Image(systemName: "arrow.right")
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .frame(maxWidth: geo.size.width - 40, minHeight: 50)
-                        .background(Color(red: 250/255, green: 250/255, blue: 250/255))
+                        .background(Color(.tertiarySystemBackground))
                         .cornerRadius(20)
                         .padding(.horizontal, 20)
                     }
@@ -104,7 +106,7 @@ struct MBTIRadioButtonView: View {
             }
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+            .background(Color(.systemBackground).ignoresSafeArea())
             .onAppear {
                 showRowsSequentially()
             }
@@ -145,6 +147,7 @@ private struct RowView: View {
                         Text(trait)
                             .font(.title)
                             .fontWeight(.bold)
+                            .foregroundColor(.black)
                         
                         Text(meaning)
                             .font(.caption)
@@ -162,7 +165,6 @@ private struct RowView: View {
                                     .stroke(selections[row] == trait ? Color.blue : Color.clear, lineWidth: 4)
                             )
                     )
-                    .foregroundColor(.black)
                     .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 4)
                 }
             }

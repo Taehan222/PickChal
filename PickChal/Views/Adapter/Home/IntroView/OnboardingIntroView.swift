@@ -27,6 +27,7 @@ struct OnboardingIntroView: View {
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+                    .foregroundColor(.primary)
                     .opacity(showBox1 ? 1 : 0)
                     .scaleEffect(showBox1 ? 1 : 0.95)
                     .animation(.easeOut(duration: 0.6), value: showBox1)
@@ -37,7 +38,7 @@ struct OnboardingIntroView: View {
                             text: "사용자에게 알맞는 루틴을 분석해요",
                             icon: "chart.bar.fill",
                             iconColor: Color(red: 219/255, green: 196/255, blue: 240/255),
-                            backgroundColor: Color(red: 255/255, green: 245/255, blue: 245/255)
+                            backgroundColor: Color(.secondarySystemBackground)
                         )
                         .transition(.opacity.combined(with: .scale))
                     }
@@ -45,7 +46,7 @@ struct OnboardingIntroView: View {
                     VStack(spacing: 20) {
                         if showArrow2 {
                             Image(systemName: "arrow.down")
-                                .foregroundColor(.black)
+                                .foregroundColor(.secondary)
                                 .transition(.opacity.combined(with: .scale))
                         }
                         if showBox2 {
@@ -53,17 +54,16 @@ struct OnboardingIntroView: View {
                                 text: "캘린더에 저장하여 챌린지를 완주해요",
                                 icon: "calendar",
                                 iconColor: Color(red: 245/255, green: 150/255, blue: 150/255),
-                                backgroundColor: Color(red: 255/255, green: 245/255, blue: 245/255)
+                                backgroundColor: Color(.secondarySystemBackground)
                             )
                             .transition(.opacity.combined(with: .scale))
                         }
                     }
-                    .transition(.opacity.combined(with: .scale))
 
                     VStack(spacing: 20) {
                         if showArrow3 {
                             Image(systemName: "arrow.down")
-                                .foregroundColor(.black)
+                                .foregroundColor(.secondary)
                                 .transition(.opacity.combined(with: .scale))
                         }
                         if showBox3 {
@@ -71,7 +71,7 @@ struct OnboardingIntroView: View {
                                 text: "알람을 통해 체계적으로 루틴을 관리해요",
                                 icon: "alarm",
                                 iconColor: Color(red: 89/255, green: 193/255, blue: 254/255),
-                                backgroundColor: Color(red: 255/255, green: 245/255, blue: 245/255)
+                                backgroundColor: Color(.secondarySystemBackground)
                             )
                             .transition(.opacity.combined(with: .scale))
                             .onAppear {
@@ -79,7 +79,6 @@ struct OnboardingIntroView: View {
                             }
                         }
                     }
-                    .transition(.opacity.combined(with: .scale))
                 }
                 .padding(.top, 50)
                 .animation(.easeOut(duration: 0.9), value: [showBox1, showBox2, showBox3, showArrow2, showArrow3, showNextButton])
@@ -96,9 +95,9 @@ struct OnboardingIntroView: View {
                                     .font(.headline)
                                 Image(systemName: "arrow.right")
                             }
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, minHeight: 50)
-                            .background(Color(red: 250/255, green: 250/255, blue: 250/255))
+                            .background(Color(.tertiarySystemBackground))
                             .cornerRadius(20)
                             .padding(.horizontal, 20)
                         }
@@ -108,6 +107,7 @@ struct OnboardingIntroView: View {
 
                 Spacer().frame(height: 40)
             }
+            .background(Color(.systemBackground).ignoresSafeArea())
             .onAppear {
                 showIntroSequence()
             }
@@ -160,7 +160,7 @@ struct OnboardingStepBox: View {
                 .font(.system(size: 32))
                 .foregroundColor(iconColor)
             Text(text)
-                .foregroundColor(Color(red: 80/255, green: 80/255, blue: 80/255))
+                .foregroundColor(.primary)
                 .font(.body.weight(.semibold))
                 .multilineTextAlignment(.center)
         }
