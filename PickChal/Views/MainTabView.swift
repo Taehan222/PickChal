@@ -41,12 +41,12 @@ struct ContentView: View {
             statsVM.registerNotificationsIfNeeded()
         }
         
-        .accentColor(Theme.Colors.primary)
-        .background(Theme.Colors.background)
+        //.accentColor(Theme.Colors.primary)
+        //.background(Theme.Colors.background)
         
         //ThemeManager 사용예시
-        //.accentColor(themeManager.currentTheme.accentColor)
-        //.background(themeManager.currentTheme.backgroundColor)
+        .accentColor(themeManager.currentTheme.accentColor)
+        .background(themeManager.currentTheme.backgroundColor)
         
         
     }

@@ -39,7 +39,7 @@ struct SettingsTabView: View {
                         VStack(alignment: .leading) {
                             Text("테마 선택")
                                 .font(.headline)
-                                .foregroundColor(.black)
+                                .foregroundColor(Color.primary)
                             Picker("테마", selection: $themeManager.currentTheme) {
                                 ForEach(AppTheme.allCases) { theme in
                                     Text(theme.displayName).tag(theme)
@@ -93,10 +93,10 @@ struct SettingsTabView: View {
         HStack {
             Text(title)
                 .fontWeight(.semibold)
-                .foregroundColor(.black)
+                .foregroundColor(Color.primary)
             Spacer()
             Text(value)
-                .foregroundColor(.black)
+                .foregroundColor(Color.primary)
         }
     }
 }
@@ -130,12 +130,12 @@ struct SettingsRowCard<Destination: View>: View {
             SettingsCard {
                 HStack {
                     Text(title)
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                     Spacer()
                     Text(detail)
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                 }
             }
         }
@@ -150,7 +150,7 @@ struct SettingsToggleRow: View {
         SettingsCard {
             HStack {
                 Text(title)
-                    .foregroundColor(.black)
+                    .foregroundColor(Color.primary)
                 Spacer()
                 Toggle("", isOn: $isOn)
                     .labelsHidden()
@@ -170,10 +170,10 @@ struct SettingsActionRow: View {
             SettingsCard {
                 HStack {
                     Text(title)
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                     Spacer()
                     Image(systemName: icon)
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                 }
             }
         }
