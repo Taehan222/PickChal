@@ -111,6 +111,7 @@ struct OnboardingIntroView: View {
             .onAppear {
                 showIntroSequence()
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 

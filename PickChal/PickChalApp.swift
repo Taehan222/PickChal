@@ -12,7 +12,8 @@ struct PickChalApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var themeManager = ThemeManager()
     @StateObject var tabManager = TabSelectionManager.shared
-    @AppStorage("onboardingCompleted") private var onboardingCompleted = false // 인트로 뷰 완료 여부 저장
+    @AppStorage("onboardingCompleted") private var onboardingCompleted = false
+    @State private var showIntro = true
 
     init() {
         // 앱 시작 시: 알림 뱃지 초기화 및 델리게이트 설정
@@ -22,30 +23,40 @@ struct PickChalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, CoreDataManager.shared.container.viewContext)
-                .environmentObject(tabManager)
-                .environmentObject(themeManager)
-                .overlay {
-                    if !onboardingCompleted {
-                        NavigationStack {
-                            OnboardingIntroView(viewModel: OnboardingVM())
+            Group {
+                if showIntro {
+                    PickChalIntroView()
+                } else {
+                    ContentView()
+                        .environment(\.managedObjectContext, CoreDataManager.shared.container.viewContext)
+                        .environmentObject(tabManager)
+                        .environmentObject(themeManager)
+                        .overlay {
+                            if !onboardingCompleted {
+                                NavigationStack {
+                                    OnboardingIntroView(viewModel: OnboardingVM())
+                                }
+                                .transition(.move(edge: .trailing))
+                            }
                         }
-                        .transition(.move(edge: .trailing))
+                }
+            }
+            .onAppear {
+                if onboardingCompleted {
+                    tabManager.switchToTab(.home)
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        showIntro = false
                     }
                 }
-                // 인트로 뷰 완료되면 홈으로 자동 이동
-                .onAppear {
-                    if onboardingCompleted {
-                        tabManager.switchToTab(.home)
-                    }
+            }
+            .onChange(of: scenePhase) { phase in
+                if phase == .active {
+                    NotificationManager.shared.resetBadgeCount()
                 }
-                // 앱 실행 시 알림 뱃지 초기화
-                .onChange(of: scenePhase) { phase in
-                    if phase == .active {
-                        NotificationManager.shared.resetBadgeCount()
-                    }
-                }
+            }
         }
     }
 }
