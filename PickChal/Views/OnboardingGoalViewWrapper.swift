@@ -30,7 +30,7 @@ struct OnboardingGoalViewWrapper: View {
             ForEach(cardInfos, id: \.self) { info in
                 BackgroundCardView(text: info.text, color: info.color)
                     .position(info.position)
-                    .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: info.position)
+                    .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: info.position)
             }
 
             VStack(spacing: 20) {
@@ -78,7 +78,7 @@ struct OnboardingGoalViewWrapper: View {
         .ignoresSafeArea()
         .onAppear {
             setupCardInfos()
-            moveCardsRandomly()
+            moveCardsInSections()
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 withAnimation {
                     showInput = true
@@ -90,35 +90,25 @@ struct OnboardingGoalViewWrapper: View {
     private func setupCardInfos() {
         let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
-        let cardWidth: CGFloat = 180
-        let cardHeight: CGFloat = 50
-        let horizontalPadding: CGFloat = 20
-        let verticalPadding: CGFloat = 100
+        let rows = 4
+        let columns = 4
+        let cellWidth = screenWidth / CGFloat(columns)
+        let cellHeight = screenHeight / CGFloat(rows)
 
-        var positions: [CGRect] = []
+        let shuffledWords = words.shuffled().prefix(rows * columns)
         var infos: [BackgroundCardInfo] = []
 
-        for (index, word) in words.enumerated() {
-            var position: CGPoint?
-            let maxAttempts = 100
+        for (index, word) in shuffledWords.enumerated() {
+            let row = index / columns
+            let col = index % columns
 
-            for _ in 0..<maxAttempts {
-                let x = CGFloat.random(in: horizontalPadding...(screenWidth - horizontalPadding))
-                let y = CGFloat.random(in: verticalPadding...(screenHeight - verticalPadding))
-                let newRect = CGRect(x: x - cardWidth / 2, y: y - cardHeight / 2, width: cardWidth, height: cardHeight)
+            let minX = CGFloat(col) * cellWidth
+            let minY = CGFloat(row) * cellHeight
+            let maxX = minX + cellWidth
+            let maxY = minY + cellHeight
 
-                if positions.allSatisfy({ !$0.intersects(newRect) }) {
-                    position = CGPoint(x: x, y: y)
-                    positions.append(newRect)
-                    break
-                }
-            }
-
-            if position == nil {
-                let fallbackX = CGFloat.random(in: horizontalPadding...(screenWidth - horizontalPadding))
-                let fallbackY = CGFloat.random(in: verticalPadding...(screenHeight - verticalPadding))
-                position = CGPoint(x: fallbackX, y: fallbackY)
-            }
+            let x = CGFloat.random(in: minX + 20...maxX - 20)
+            let y = CGFloat.random(in: minY + 20...maxY - 20)
 
             let pastelColor = Color(
                 hue: Double.random(in: 0...1),
@@ -126,23 +116,33 @@ struct OnboardingGoalViewWrapper: View {
                 brightness: 1.0
             )
 
-            infos.append(BackgroundCardInfo(index: index, text: word, position: position!, color: pastelColor))
+            infos.append(BackgroundCardInfo(index: index, text: word, position: CGPoint(x: x, y: y), color: pastelColor))
         }
 
         self.cardInfos = infos
     }
 
-    private func moveCardsRandomly() {
-        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 3.0)) {
-                for i in 0..<cardInfos.count {
-                    let screenWidth = UIScreen.main.bounds.width
-                    let screenHeight = UIScreen.main.bounds.height
-                    let horizontalPadding: CGFloat = 20
-                    let verticalPadding: CGFloat = 100
+    private func moveCardsInSections() {
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        let rows = 4
+        let columns = 4
+        let cellWidth = screenWidth / CGFloat(columns)
+        let cellHeight = screenHeight / CGFloat(rows)
 
-                    let x = CGFloat.random(in: horizontalPadding...(screenWidth - horizontalPadding))
-                    let y = CGFloat.random(in: verticalPadding...(screenHeight - verticalPadding))
+        Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 4.0)) {
+                for i in 0..<cardInfos.count {
+                    let row = i / columns
+                    let col = i % columns
+
+                    let minX = CGFloat(col) * cellWidth
+                    let minY = CGFloat(row) * cellHeight
+                    let maxX = minX + cellWidth
+                    let maxY = minY + cellHeight
+
+                    let x = CGFloat.random(in: minX + 20...maxX - 20)
+                    let y = CGFloat.random(in: minY + 20...maxY - 20)
 
                     cardInfos[i].position = CGPoint(x: x, y: y)
                 }
