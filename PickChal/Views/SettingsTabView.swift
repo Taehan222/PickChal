@@ -67,32 +67,24 @@ struct SettingsTabView: View {
                             Text("테마 선택")
                                 .font(.headline)
 
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 110))], spacing: 12) {
+                            HStack(spacing: 20) {
                                 ForEach(AppTheme.allCases) { theme in
-                                    Button(action: {
-                                        withAnimation { themeManager.currentTheme = theme }
-                                    }) {
-                                        HStack(spacing: 6) {
-                                            Circle()
-                                                .fill(theme.accentColor)
-                                                .frame(width: 16, height: 16)
-                                            Text(theme.displayName)
-                                                .font(.subheadline)
-                                        }
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 12)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Capsule().fill(Color.clear))
+                                    Circle()
+                                        .fill(theme.accentColor)
+                                        .frame(width: themeManager.currentTheme == theme ? 44 : 32,
+                                               height: themeManager.currentTheme == theme ? 44 : 32)
                                         .overlay(
-                                            Capsule()
-                                                .stroke(
-                                                    theme.accentColor,
-                                                    lineWidth: themeManager.currentTheme == theme ? 2.5 : 1
-                                                )
+                                            Circle()
+                                                .stroke(themeManager.currentTheme == theme ? Color.primary : Color.clear, lineWidth: 2)
                                         )
-                                    }
+                                        .onTapGesture {
+                                            withAnimation {
+                                                themeManager.currentTheme = theme
+                                            }
+                                        }
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
                     }
                     .padding(.horizontal)
@@ -128,6 +120,7 @@ struct SettingsTabView: View {
         }
     }
 
+    // MARK: - 차트 뷰들
     var successRateChart: some View {
         let done = completedChallenges.count
         let total = challenges.count
@@ -218,7 +211,6 @@ struct SettingsTabView: View {
         }
     }
 }
-
 
 struct SettingsCard<Content: View>: View {
     @EnvironmentObject var themeManager: ThemeManager
