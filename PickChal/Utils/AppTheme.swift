@@ -37,7 +37,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var font: Font {
         switch self {
-        case .lavender: return .title2.weight(.medium)
+        case .lavender: return .title3
         case .skyBlue: return .title3
         case .mint: return .title3
         case .peach: return .title3
