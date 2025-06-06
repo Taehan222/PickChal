@@ -26,19 +26,15 @@ struct PickChalApp: App {
             Group {
                 if showIntro {
                     PickChalIntroView()
+                } else if !onboardingCompleted {
+                    NavigationStack {
+                        OnboardingIntroView(viewModel: OnboardingVM())
+                    }
                 } else {
                     ContentView()
                         .environment(\.managedObjectContext, CoreDataManager.shared.container.viewContext)
                         .environmentObject(tabManager)
                         .environmentObject(themeManager)
-                        .overlay {
-                            if !onboardingCompleted {
-                                NavigationStack {
-                                    OnboardingIntroView(viewModel: OnboardingVM())
-                                }
-                                .transition(.move(edge: .trailing))
-                            }
-                        }
                 }
             }
             .onAppear {
@@ -46,7 +42,7 @@ struct PickChalApp: App {
                     tabManager.switchToTab(.home)
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
                     withAnimation(.easeOut(duration: 0.4)) {
                         showIntro = false
                     }
