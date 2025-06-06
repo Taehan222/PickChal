@@ -79,7 +79,7 @@ struct OnboardingGoalViewWrapper: View {
         .onAppear {
             setupCardInfos()
             moveCardsInSections()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation {
                     showInput = true
                 }
@@ -130,8 +130,8 @@ struct OnboardingGoalViewWrapper: View {
         let cellWidth = screenWidth / CGFloat(columns)
         let cellHeight = screenHeight / CGFloat(rows)
 
-        Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 4.0)) {
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 2.0)) {
                 for i in 0..<cardInfos.count {
                     let row = i / columns
                     let col = i % columns
