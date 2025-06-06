@@ -2,37 +2,39 @@ import SwiftUI
 import Charts
 
 enum ChallengeStatType: String, CaseIterable, Identifiable {
-    case completionRate = "완료율"
-    case categoryDistribution = "카테고리"
-    case durationDistribution = "챌린지 기간"
-    case weekdayStart = "요일별 시작"
+    case successRate = "성공률"
+    case categoryFocus = "가장 많이 한 분야"
+    case longestChallenge = "가장 긴 챌린지"
+    case activeDays = "활동한 요일"
 
     var id: String { self.rawValue }
 }
 
 struct ChallengeStatsDetailView: View {
     let challenges: [ChallengeModel]
-    @State private var selectedStat: ChallengeStatType = .completionRate
+    @State private var selectedStat: ChallengeStatType = .successRate
 
-    var completedCount: Int {
-        challenges.filter { $0.isCompleted }.count
+    var completedChallenges: [ChallengeModel] {
+        challenges.filter { $0.isCompleted }
     }
 
     var categorySummary: [String: Int] {
         Dictionary(grouping: challenges, by: { $0.category }).mapValues { $0.count }
     }
 
-    var durationByChallenge: [(title: String, days: Int)] {
+    var longestChallenge: (title: String, days: Int)? {
         challenges.map {
-            let diff = Calendar.current.dateComponents([.day], from: $0.startDate, to: $0.endDate).day ?? 0
-            return (title: $0.title, days: max(diff, 0))
+            let days = Calendar.current.dateComponents([.day], from: $0.startDate, to: $0.endDate).day ?? 0
+            return (title: $0.title, days: max(days, 0))
         }
+        .sorted { $0.days > $1.days }
+        .first
     }
 
     var weekdaySummary: [String: Int] {
         let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
-        let grouped = Dictionary(grouping: challenges) { challenge in
-            let weekday = Calendar.current.component(.weekday, from: challenge.startDate) // 1 = Sunday
+        let grouped = Dictionary(grouping: challenges) {
+            let weekday = Calendar.current.component(.weekday, from: $0.startDate)
             return weekdays[weekday - 1]
         }
         return grouped.mapValues { $0.count }
@@ -40,10 +42,11 @@ struct ChallengeStatsDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("챌린지 상세 통계")
+            VStack(alignment: .leading, spacing: 24) {
+                Text("🔥 나의 챌린지 통계")
                     .font(.title2).bold()
                     .padding(.top)
+                    .transition(.move(edge: .top).combined(with: .opacity))
 
                 Picker("통계 유형", selection: $selectedStat) {
                     ForEach(ChallengeStatType.allCases) { stat in
@@ -55,101 +58,112 @@ struct ChallengeStatsDetailView: View {
 
                 Group {
                     switch selectedStat {
-                    case .completionRate:
-                        completionChart
-                    case .categoryDistribution:
-                        categoryChart
-                    case .durationDistribution:
-                        durationChart
-                    case .weekdayStart:
-                        weekdayChart
+                    case .successRate:
+                        successRateChart
+                    case .categoryFocus:
+                        categoryFocusChart
+                    case .longestChallenge:
+                        longestChallengeChart
+                    case .activeDays:
+                        activeDaysChart
                     }
                 }
+                .animation(.spring(), value: selectedStat)
             }
             .padding()
         }
         .navigationTitle("통계 보기")
-        .accentColor(Theme.Colors.primary)
     }
 
-    // 완료
-    var completionChart: some View {
-        VStack(alignment: .leading) {
-            Text("완료한 챌린지 비율")
+    var successRateChart: some View {
+        let total = challenges.count
+        let success = completedChallenges.count
+        let rate = total > 0 ? Int((Double(success) / Double(total)) * 100) : 0
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("챌린지 성공률")
                 .font(.headline)
-
-            let done = completedCount
-            let total = challenges.count
-            let percent = total > 0 ? Int((Double(done) / Double(total)) * 100) : 0
-
             Chart {
-                BarMark(x: .value("상태", "완료"), y: .value("개수", done))
-                    .foregroundStyle(.green)
-                BarMark(x: .value("상태", "미완료"), y: .value("개수", total - done))
-                    .foregroundStyle(.red)
+                BarMark(x: .value("상태", "성공"), y: .value("개수", success))
+                    .foregroundStyle(.green.gradient)
+                    .annotation(position: .top) { Text("\(success)") }
+                BarMark(x: .value("상태", "실패"), y: .value("개수", total - success))
+                    .foregroundStyle(.gray.opacity(0.4))
+                    .annotation(position: .top) { Text("\(total - success)") }
             }
-            .frame(height: 200)
+            .frame(height: 180)
+            .transition(.scale)
 
-            Text("총 \(total)개 중 \(done)개 완료 (\(percent)%)")
+            Text("도전 \(total)개 중 \(success)개 완료 (\(rate)%) 🎯")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
         }
     }
 
-    // 카테고리 분포
-    var categoryChart: some View {
-        VStack(alignment: .leading) {
-            Text("카테고리별 챌린지 수")
+    var categoryFocusChart: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("가장 많이 한 분야")
                 .font(.headline)
-
             Chart {
-                ForEach(categorySummary.sorted(by: { $0.value > $1.value }), id: \.key) { category, count in
+                ForEach(categorySummary.sorted(by: { $0.value > $1.value }), id: \ .key) { category, count in
                     SectorMark(
                         angle: .value("비율", count),
-                        innerRadius: .ratio(0.4),
+                        innerRadius: .ratio(0.5),
                         angularInset: 2
                     )
                     .foregroundStyle(by: .value("카테고리", category))
+                    .annotation(position: .overlay) {
+                        Text(category)
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                    }
                 }
             }
             .frame(height: 250)
         }
     }
 
-    //챌린지 기간 분포
-    var durationChart: some View {
-        VStack(alignment: .leading) {
-            Text("챌린지별 기간 (일 수)")
+    var longestChallengeChart: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("가장 오래한 챌린지")
                 .font(.headline)
-
-            Chart {
-                ForEach(durationByChallenge, id: \.title) { item in
-                    BarMark(
-                        x: .value("챌린지", item.title),
-                        y: .value("일 수", item.days)
-                    )
+            if let longest = longestChallenge {
+                Text("\(longest.title) - \(longest.days)일 ⏳")
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                    .padding(.bottom, 4)
+                Chart {
+                    BarMark(x: .value("챌린지", longest.title), y: .value("일 수", longest.days))
+                        .foregroundStyle(.purple.gradient)
+                        .annotation(position: .top) {
+                            Text("\(longest.days)일")
+                        }
                 }
+                .frame(height: 180)
+            } else {
+                Text("진행한 챌린지가 없습니다.")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
-            .frame(height: 250)
         }
     }
 
-    //요일별 시작 분포
-    var weekdayChart: some View {
-        VStack(alignment: .leading) {
-            Text("요일별 챌린지 시작 횟수")
+    var activeDaysChart: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("가장 자주 시작한 요일")
                 .font(.headline)
-
             Chart {
-                ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \.self) { day in
+                ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \ .self) { day in
                     let value = weekdaySummary[day] ?? 0
-                    BarMark(
-                        x: .value("요일", day),
-                        y: .value("개수", value)
-                    )
+                    BarMark(x: .value("요일", day), y: .value("개수", value))
+                        .foregroundStyle(.blue.gradient)
+                        .annotation(position: .top) {
+                            Text("\(value)")
+                                .font(.caption2)
+                        }
                 }
             }
-            .frame(height: 220)
+            .frame(height: 200)
         }
     }
 }
