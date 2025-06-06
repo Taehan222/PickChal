@@ -79,7 +79,7 @@ struct SettingsTabView: View {
                                         )
                                         .onTapGesture {
                                             withAnimation {
-                                                themeManager.currentTheme = theme
+                                                themeManager.updateTheme(theme)
                                             }
                                         }
                                 }

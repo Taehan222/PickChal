@@ -44,4 +44,8 @@ enum AppTheme: String, CaseIterable, Identifiable {
         case .rose: return .title3
         }
     }
-}
+  
+        static let `default`: AppTheme = .lavender
+    }
+
+
