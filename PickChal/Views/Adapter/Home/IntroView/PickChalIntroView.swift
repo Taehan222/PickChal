@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PickChalIntroView: View {
+    @Environment(\.colorScheme) var colorScheme
     @State private var isVisible: Bool = false
     @State private var showImage: Bool = false
     @State private var navigateNext = false
@@ -15,12 +16,12 @@ struct PickChalIntroView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.996, green: 0.988, blue: 0.940)
+                Color(.systemBackground)
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     if showImage {
-                        Image("logo")
+                        Image(colorScheme == .dark ? "logoDark" : "logo")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 250, height: 250)
@@ -29,17 +30,12 @@ struct PickChalIntroView: View {
                     if isVisible {
                         Text("PickChal")
                             .customAttribute(EmphasisAttribute())
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color.primary)
                             .bold()
                             .font(.system(size: 42, weight: .semibold, design: .rounded))
                             .transition(TextTransition())
                             .padding(.top, -2)
                     }
-                }
-
-                // 인트로 시작 뷰로 전환
-                NavigationLink(destination: OnboardingIntroView(), isActive: $navigateNext) {
-                    EmptyView()
                 }
             }
             .onAppear {
@@ -49,10 +45,6 @@ struct PickChalIntroView: View {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                         isVisible = true
                     }
-                }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                    navigateNext = true
                 }
             }
         }
