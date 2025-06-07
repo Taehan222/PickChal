@@ -12,6 +12,7 @@ struct OnboardingGoalViewWrapper: View {
     @State private var showInput = false
     @State private var cardInfos: [BackgroundCardInfo] = []
     @State private var userInput: String = ""
+    @Environment(\.colorScheme) var colorScheme
 
     let onGoalEntered: (String) -> Void
 
@@ -27,16 +28,23 @@ struct OnboardingGoalViewWrapper: View {
 
     var body: some View {
         ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    UIApplication.shared.endEditing()
+                }
+
             ForEach(cardInfos, id: \.self) { info in
                 BackgroundCardView(text: info.text, color: info.color)
                     .position(info.position)
-                    .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: info.position)
+                    .zIndex(Double(info.index))
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: info.position)
             }
 
             VStack(spacing: 20) {
                 Text("당신은 무엇을 이루고 싶나요?")
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
 
                 if showInput {
@@ -44,19 +52,16 @@ struct OnboardingGoalViewWrapper: View {
                         ZStack(alignment: .leading) {
                             if userInput.isEmpty {
                                 Text("이루고 싶은 것을 입력해보세요")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.primary)
                                     .padding(.leading, 12)
                             }
 
                             TextField("", text: $userInput)
                                 .padding()
                                 .frame(width: 260)
-                                .background(Color.gray.opacity(0.05))
                                 .cornerRadius(10)
-                                .foregroundColor(.black)
-                                .shadow(color: .gray.opacity(0.3), radius: 4, x: 0, y: 2)
+                                .foregroundColor(.primary)
                         }
-
                         Button("확인") {
                             onGoalEntered(userInput)
                             isPresented = false
@@ -70,16 +75,15 @@ struct OnboardingGoalViewWrapper: View {
             }
             .frame(width: 300)
             .padding()
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .cornerRadius(16)
             .shadow(radius: 8)
+            .zIndex(Double.infinity)
         }
-        .background(Color.white)
-        .ignoresSafeArea()
         .onAppear {
             setupCardInfos()
             moveCardsInSections()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 withAnimation {
                     showInput = true
                 }
@@ -130,8 +134,8 @@ struct OnboardingGoalViewWrapper: View {
         let cellWidth = screenWidth / CGFloat(columns)
         let cellHeight = screenHeight / CGFloat(rows)
 
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 2.0)) {
+        Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 2.5)) {
                 for i in 0..<cardInfos.count {
                     let row = i / columns
                     let col = i % columns
@@ -169,9 +173,15 @@ struct BackgroundCardView: View {
             .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(color.opacity(0.4))
+                    .fill(color.opacity(0.25))
                     .shadow(radius: 2)
             )
+    }
+}
+
+extension UIApplication {
+    func endEditing() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 
