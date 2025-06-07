@@ -1,43 +1,34 @@
 import SwiftUI
 import Charts
 
+enum ChallengeStatType: String, CaseIterable, Identifiable {
+    case successRate = "성공률"
+    case category = "카테고리별"
+    case monthly = "월별"
+
+    var id: String { self.rawValue }
+}
+
+
 struct SettingsTabView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
     @EnvironmentObject var statsVM: StatisticsViewModel
     @EnvironmentObject var themeManager: ThemeManager
-    @State private var selectedStat: ChallengeStatType = .successRate
 
     var challenges: [ChallengeModel] { statsVM.challengeModels }
     var completedChallenges: [ChallengeModel] { challenges.filter { $0.isCompleted } }
-    var ongoingChallenges: [ChallengeModel] { challenges.filter { !$0.isCompleted } }
+    var ongoingChallenges: [ChallengeModel] { statsVM.ongoingChallenges }
 
-    var categorySummary: [String: Int] {
-        Dictionary(grouping: challenges, by: { $0.category }).mapValues { $0.count }
-    }
-
-    var durationByChallenge: [(title: String, days: Int)] {
-        challenges.map {
-            let diff = Calendar.current.dateComponents([.day], from: $0.startDate, to: $0.endDate).day ?? 0
-            return (title: $0.title, days: max(diff, 0))
-        }
-    }
-
-    var weekdaySummary: [String: Int] {
-        let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
-        let grouped = Dictionary(grouping: challenges) {
-            let weekday = Calendar.current.component(.weekday, from: $0.startDate)
-            return weekdays[weekday - 1]
-        }
-        return grouped.mapValues { $0.count }
-    }
+    @State private var selectedStat: ChallengeStatType = .successRate
 
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 32) {
 
+                    // MARK: - 통계 뷰
                     SettingsCard {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 16) {
                             Text("나의 챌린지 통계")
                                 .font(.title3.bold())
 
@@ -48,20 +39,24 @@ struct SettingsTabView: View {
                             }
                             .pickerStyle(.segmented)
 
-                            Group {
-                                switch selectedStat {
-                                case .successRate: successRateChart
-                                case .categoryFocus: categoryFocusChart
-                                case .activeDays: activeDaysChart
-                                case .longestChallenge: longestChallengeChart
-                                }
-                            }
-                            .transition(.opacity.combined(with: .slide))
-                            .animation(.spring(), value: selectedStat)
+                            StatisticsView(
+                                challengeLogs: statsVM.allLogs.map {
+                                    ChallengeLogModel(
+                                        id: $0.id ?? UUID(),
+                                        date: $0.date ?? Date(),
+                                        completed: $0.completed,
+                                        challengeID: $0.challenge?.id ?? UUID(),
+                                        descriptionText: $0.descriptionText ?? ""
+                                    )
+                                },
+                                challengeModels: statsVM.challengeModels,
+                                selectedStat: selectedStat
+                            )
                         }
                     }
                     .padding(.horizontal)
 
+                    // MARK: - 테마 선택
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("테마 선택")
@@ -89,17 +84,28 @@ struct SettingsTabView: View {
                     }
                     .padding(.horizontal)
 
+                    // MARK: - 완료한 챌린지
                     SettingsRowCard(title: "완료한 챌린지", detail: "\(completedChallenges.count)개") {
                         ChallengeCompletedListView(completed: completedChallenges)
                     }
                     .padding(.horizontal)
 
+                    // MARK: - 테스트 알림
+                    SettingsCard {
+                        Button("테스트 알림 보내기") {
+                            NotificationManager.shared.scheduleImmediateTestNotification()
+                        }
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.horizontal)
+
+                    // MARK: - 알림 설정
                     SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
                         .onChange(of: notificationsEnabled) { isOn in
                             if isOn {
-                                for challenge in ongoingChallenges {
-                                    NotificationManager.shared.scheduleChallenge(challenge)
-                                }
+                                statsVM.registerNotificationsIfNeeded()
                             } else {
                                 NotificationManager.shared.removeAll()
                             }
@@ -117,97 +123,6 @@ struct SettingsTabView: View {
                 statsVM.loadStatistics()
                 statsVM.loadUserProfile()
             }
-        }
-    }
-
-    // MARK: - 차트 뷰들
-    var successRateChart: some View {
-        let done = completedChallenges.count
-        let total = challenges.count
-        let percent = total > 0 ? Int((Double(done) / Double(total)) * 100) : 0
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("성공률")
-                .font(.headline)
-
-            Chart {
-                BarMark(x: .value("상태", "성공"), y: .value("개수", done))
-                    .foregroundStyle(themeManager.currentTheme.accentColor.gradient)
-                    .annotation(position: .top) { Text("\(done)") }
-                BarMark(x: .value("상태", "실패"), y: .value("개수", total - done))
-                    .foregroundStyle(.gray.opacity(0.3))
-                    .annotation(position: .top) { Text("\(total - done)") }
-            }
-            .frame(height: 160)
-
-            Text("총 \(total)개 중 \(done)개 성공 (\(percent)%)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-    }
-
-    var categoryFocusChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("가장 많이 한 분야")
-                .font(.headline)
-
-            Chart {
-                ForEach(categorySummary.sorted(by: { $0.value > $1.value }), id: \ .key) { category, count in
-                    SectorMark(
-                        angle: .value("비율", count),
-                        innerRadius: .ratio(0.4),
-                        angularInset: 3
-                    )
-                    .foregroundStyle(by: .value("카테고리", category))
-                    .annotation(position: .overlay) {
-                        Text(category).font(.caption2).foregroundColor(.white)
-                    }
-                }
-            }
-            .frame(height: 220)
-        }
-    }
-
-    var longestChallengeChart: some View {
-        let longest = durationByChallenge.max(by: { $0.days < $1.days })
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("가장 긴 챌린지")
-                .font(.headline)
-
-            if let item = longest {
-                Chart {
-                    BarMark(x: .value("챌린지", item.title), y: .value("일 수", item.days))
-                        .foregroundStyle(.purple.gradient)
-                        .annotation(position: .top) {
-                            Text("\(item.days)일").font(.caption2)
-                        }
-                }
-                .frame(height: 180)
-            } else {
-                Text("진행한 챌린지가 없습니다.")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-        }
-    }
-
-    var activeDaysChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("활동한 요일")
-                .font(.headline)
-
-            Chart {
-                ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \ .self) { day in
-                    let value = weekdaySummary[day] ?? 0
-                    BarMark(x: .value("요일", day), y: .value("개수", value))
-                        .foregroundStyle(themeManager.currentTheme.accentColor.gradient)
-                        .annotation(position: .top) {
-                            Text("\(value)").font(.caption2)
-                        }
-                }
-            }
-            .frame(height: 200)
         }
     }
 }

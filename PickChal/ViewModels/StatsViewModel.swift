@@ -94,7 +94,7 @@ final class StatisticsViewModel: ObservableObject {
     func registerNotificationsIfNeeded() {
         if UserDefaults.standard.bool(forKey: "notificationsEnabled") {
             for challenge in ongoingChallenges {
-                NotificationManager.shared.scheduleChallenge(challenge)
+                NotificationManager.shared.scheduleChallenge(challenge,notificationsEnabled: true)
             }
         }
     }
