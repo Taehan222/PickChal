@@ -34,17 +34,11 @@ struct ChallengeCompletedListView: View {
 
     // 공유 로직
     func shareToInstagram(for challenge: ChallengeModel) {
-        let background = UIImage.imageWithText(
-            text: "오늘의 챌린지 완료 🎉",
-            size: CGSize(width: 300, height: 500),
-            backgroundColor: .black,
-            textColor: .white
-        )
+      
 
         let sticker = UIImage.challengeSticker(text: "#\(challenge.title)")
 
         InstagramSharer.share(
-            backgroundImage: background,
             stickerImage: sticker,
             appID: "1230529985269243"
         )
@@ -54,26 +48,26 @@ import UIKit
 
 extension UIImage {
     // 배경 이미지에 텍스트 삽입
-    static func imageWithText(text: String, size: CGSize, backgroundColor: UIColor, textColor: UIColor) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-
-        return renderer.image { context in
-            backgroundColor.setFill()
-            context.fill(CGRect(origin: .zero, size: size))
-
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = .center
-
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 20, weight: .semibold),
-                .foregroundColor: textColor,
-                .paragraphStyle: paragraphStyle
-            ]
-
-            let textRect = CGRect(x: 0, y: size.height / 2 - 15, width: size.width, height: 30)
-            text.draw(in: textRect, withAttributes: attributes)
-        }
-    }
+//    static func imageWithText(text: String, size: CGSize, backgroundColor: UIColor, textColor: UIColor) -> UIImage {
+//        let renderer = UIGraphicsImageRenderer(size: size)
+//
+//        return renderer.image { context in
+//            backgroundColor.setFill()
+//            context.fill(CGRect(origin: .zero, size: size))
+//
+//            let paragraphStyle = NSMutableParagraphStyle()
+//            paragraphStyle.alignment = .center
+//
+//            let attributes: [NSAttributedString.Key: Any] = [
+//                .font: UIFont.systemFont(ofSize: 20, weight: .semibold),
+//                .foregroundColor: textColor,
+//                .paragraphStyle: paragraphStyle
+//            ]
+//
+//            let textRect = CGRect(x: 0, y: size.height / 2 - 15, width: size.width, height: 30)
+//            text.draw(in: textRect, withAttributes: attributes)
+//        }
+//    }
 
     // 챌린지 완료 스티커
     static func challengeSticker(text: String, size: CGSize = CGSize(width: 250, height: 60)) -> UIImage {
