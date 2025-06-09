@@ -37,6 +37,7 @@ struct ChallengeDetailModalView: View {
                         .frame(width: 60, height: 60)
                         .padding()
                         .foregroundColor(Color.from(name: challenge.iconColor))
+                   
 
                     Text(challenge.title)
                         .font(.title)
@@ -46,6 +47,7 @@ struct ChallengeDetailModalView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(Array(dailyDescriptions.enumerated()), id: \.0) { index, desc in
                             VStack(alignment: .leading, spacing: 4) {
+                                
                                 Text("Day \(index + 1)")
                                     .font(.headline)
                                     .foregroundColor(.primary)
@@ -68,6 +70,7 @@ struct ChallengeDetailModalView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button(action: {
+                        //print(challenge.alarmTime)
                         saveViewModel.saveChallenge(from: challenge)
                         dismiss()
                         onChallenge()

@@ -96,6 +96,16 @@ struct RecommendationModel: Identifiable, Decodable, Equatable {
         self.iconColor = try? c.decode(String.self, forKey: .iconColor)
         self.id = (try? c.decode(UUID.self, forKey: .id)) ?? UUID()
         self.category = try c.decode(String.self, forKey: .category)
-        self.alarmTime = try? c.decode(Date.self, forKey: .alarmTime)
+        if let timeString = try? c.decode(String.self, forKey: .alarmTime) {
+                let formatter = ISO8601DateFormatter()
+                if let parsedDate = formatter.date(from: timeString) {
+                    self.alarmTime = parsedDate
+                } else {
+                    //print("alarmTime 문자열 파싱 실패: \(timeString)")
+                    self.alarmTime = nil
+                }
+            } else {
+                self.alarmTime = nil
+            }
     }
 }

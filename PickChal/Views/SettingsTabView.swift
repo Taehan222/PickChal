@@ -1,102 +1,129 @@
 import SwiftUI
 import Charts
 
+enum ChallengeStatType: String, CaseIterable, Identifiable {
+    case successRate = "성공률"
+    case category = "카테고리별"
+    case monthly = "월별"
+
+    var id: String { self.rawValue }
+}
+
+
 struct SettingsTabView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
     @EnvironmentObject var statsVM: StatisticsViewModel
     @EnvironmentObject var themeManager: ThemeManager
 
-    var challenges: [ChallengeModel] {
-        statsVM.challengeModels
-    }
+    var challenges: [ChallengeModel] { statsVM.challengeModels }
+    var completedChallenges: [ChallengeModel] { challenges.filter { $0.isCompleted } }
+    var ongoingChallenges: [ChallengeModel] { statsVM.ongoingChallenges }
 
-    var user: UserModel? {
-        statsVM.user
-    }
-
-    var completedChallenges: [ChallengeModel] {
-        challenges.filter { $0.isCompleted }
-    }
-
-    var ongoingChallenges: [ChallengeModel] {
-        challenges.filter { !$0.isCompleted }
-    }
-
-    var challengeCompletionRate: Int {
-        let total = challenges.count
-        guard total > 0 else { return 0 }
-        let completed = completedChallenges.count
-        return Int((Double(completed) / Double(total)) * 100)
-    }
+    @State private var selectedStat: ChallengeStatType = .successRate
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
 
-                    // MARK: - 테마 선택
+                    // MARK: - 통계 뷰
                     SettingsCard {
-                        VStack(alignment: .leading) {
-                            Text("테마 선택")
-                                .font(.headline)
-                                .foregroundColor(Color.primary)
-                            Picker("테마", selection: $themeManager.currentTheme) {
-                                ForEach(AppTheme.allCases) { theme in
-                                    Text(theme.displayName).tag(theme)
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("나의 챌린지 통계")
+                                .font(.title3.bold())
+
+                            Picker("통계 유형", selection: $selectedStat) {
+                                ForEach(ChallengeStatType.allCases) { stat in
+                                    Text(stat.rawValue).tag(stat)
                                 }
                             }
                             .pickerStyle(.segmented)
+
+                            StatisticsView(
+                                challengeLogs: statsVM.allLogs.map {
+                                    ChallengeLogModel(
+                                        id: $0.id ?? UUID(),
+                                        date: $0.date ?? Date(),
+                                        completed: $0.completed,
+                                        challengeID: $0.challenge?.id ?? UUID(),
+                                        descriptionText: $0.descriptionText ?? ""
+                                    )
+                                },
+                                challengeModels: statsVM.challengeModels,
+                                selectedStat: selectedStat
+                            )
                         }
                     }
                     .padding(.horizontal)
 
-                    // MARK: - 챌린지 통계
-                    VStack(spacing: 12) {
-                        SettingsRowCard(title: "챌린지 통계", detail: "\(challengeCompletionRate)%") {
-                            ChallengeStatsDetailView(challenges: challenges)
-                        }
+                    // MARK: - 테마 선택
+                    SettingsCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("테마 선택")
+                                .font(.headline)
 
-                        SettingsRowCard(title: "완료한 챌린지", detail: "\(completedChallenges.count)개") {
-                            ChallengeCompletedListView(completed: completedChallenges)
+                            HStack(spacing: 20) {
+                                ForEach(AppTheme.allCases) { theme in
+                                    Circle()
+                                        .fill(theme.accentColor)
+                                        .frame(width: themeManager.currentTheme == theme ? 44 : 32,
+                                               height: themeManager.currentTheme == theme ? 44 : 32)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(themeManager.currentTheme == theme ? Color.primary : Color.clear, lineWidth: 2)
+                                        )
+                                        .onTapGesture {
+                                            withAnimation {
+                                                themeManager.updateTheme(theme)
+                                            }
+                                        }
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
                         }
+                    }
+                    .padding(.horizontal)
+
+                    // MARK: - 완료한 챌린지
+                    SettingsRowCard(title: "완료한 챌린지", detail: "\(completedChallenges.count)개") {
+                        ChallengeCompletedListView(completed: completedChallenges)
+                    }
+                    .padding(.horizontal)
+
+                    // MARK: - 테스트 알림
+                    SettingsCard {
+                        Button("테스트 알림 보내기") {
+                            NotificationManager.shared.scheduleImmediateTestNotification()
+                        }
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal)
 
                     // MARK: - 알림 설정
-                    VStack(spacing: 12) {
-                        SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
-                            .onChange(of: notificationsEnabled) { isOn in
-                                if isOn {
-                                    for challenge in ongoingChallenges {
-                                        NotificationManager.shared.scheduleChallenge(challenge)
-                                    }
-                                } else {
-                                    NotificationManager.shared.removeAll()
-                                }
+                    SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
+                        .onChange(of: notificationsEnabled) { isOn in
+                            if isOn {
+                                //NotificationManager.shared.removeChallenge(challenge.id)
+                                statsVM.registerNotificationsIfNeeded()
+                            } else {
+                                NotificationManager.shared.removeAll()
                             }
-                    }
-                    .padding(.horizontal)
+                        }
+                        .padding(.horizontal)
 
                     Spacer(minLength: 48)
                 }
                 .padding(.top, 20)
             }
+            .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
+            .background(themeManager.currentTheme.backgroundColor.opacity(0.1))
             .onAppear {
                 statsVM.loadStatistics()
                 statsVM.loadUserProfile()
             }
-        }
-    }
-
-    func profileRow(title: String, value: String) -> some View {
-        HStack {
-            Text(title)
-                .fontWeight(.semibold)
-                .foregroundColor(Color.primary)
-            Spacer()
-            Text(value)
-                .foregroundColor(Color.primary)
         }
     }
 }
@@ -154,27 +181,6 @@ struct SettingsToggleRow: View {
                 Spacer()
                 Toggle("", isOn: $isOn)
                     .labelsHidden()
-            }
-        }
-    }
-}
-
-struct SettingsActionRow: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            SettingsCard {
-                HStack {
-                    Text(title)
-                        .foregroundColor(Color.primary)
-                    Spacer()
-                    Image(systemName: icon)
-                        .foregroundColor(Color.primary)
-                }
             }
         }
     }

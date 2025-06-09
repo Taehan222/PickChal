@@ -30,7 +30,7 @@ final class ChallengeSaveViewModel: ObservableObject {
         
         // 생성일 및 알림 시간
         newChallenge.createdAt = Date()
-        newChallenge.alarmTime = recommendation.alarmTime ?? Date()// 알림 시간 없으면 현재시간으로 기본값
+        newChallenge.alarmTime = recommendation.alarmTime ?? Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!// 알림 시간 없으면 오전 9시기본값
         newChallenge.isCompleted = false
 
         do {
@@ -39,6 +39,10 @@ final class ChallengeSaveViewModel: ObservableObject {
             
             // 저장 후, 날짜별로 ChallengeLog 저장
             saveChallengeLogs(for: newChallenge)
+            let challengeModel = convertToModel(from: newChallenge)
+            NotificationManager.shared.removeChallenge(challengeModel.id)
+            NotificationManager.shared.scheduleChallenge(challengeModel,notificationsEnabled: true)
+
         } catch {
             print("추천 챌린지 저장 실패: \(error.localizedDescription)")
         }
@@ -84,4 +88,20 @@ final class ChallengeSaveViewModel: ObservableObject {
     private func getDayCount(from descriptionText: String) -> Int {
         descriptionText.components(separatedBy: "/").count
     }
+    private func convertToModel(from challenge: Challenge) -> ChallengeModel {
+        return ChallengeModel(
+            id: challenge.id ?? UUID(),
+            title: challenge.title ?? "",
+            subTitle: challenge.subTitle ?? "",
+            descriptionText: challenge.descriptionText ?? "",
+            category: challenge.category ?? "",
+            startDate: challenge.startDate ?? Date(),
+            endDate: challenge.endDate ?? Date(),
+            totalCount: Int(challenge.totalCount),
+            createdAt: challenge.createdAt ?? Date(),
+            alarmTime: challenge.alarmTime ?? Date(),
+            isCompleted: challenge.isCompleted
+        )
+    }
+
 }
