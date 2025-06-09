@@ -58,8 +58,8 @@ class RecommendationChatGPT {
         - 각 챌린지 항목은 다음 필드를 포함해야 합니다:
           - id, title, subTitle, descriptionText, category, alarmTime, iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days(예: 3,5,7)
         - descriptionText는 다음 형식으로 작성하세요:
-          - 첫날: ~
-          - 둘째 날: ~
+          - 첫날: ~ /
+          - 둘째 날: ~ /
           - 셋째 날: ~ (등 점진적으로 이어짐)
         - 추천할 챌린지 수는 6개입니다.
 
