@@ -28,7 +28,7 @@ struct HomeTabView: View {
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
                         iconColor: .blue,
-                        showButton: true
+                        showButton: Calendar.current.isDateInToday(selectedDate)
                     ) { log in
                         tabViewModel.showCompletionAlert(for: log.id ?? UUID())
                     }
