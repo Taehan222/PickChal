@@ -14,7 +14,7 @@ struct SettingsTabView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
     @EnvironmentObject var statsVM: StatisticsViewModel
     @EnvironmentObject var themeManager: ThemeManager
-
+    @State private var showPermissionAlert = false
     var challenges: [ChallengeModel] { statsVM.challengeModels }
     var completedChallenges: [ChallengeModel] { challenges.filter { $0.isCompleted } }
     var ongoingChallenges: [ChallengeModel] { statsVM.ongoingChallenges }
@@ -104,12 +104,27 @@ struct SettingsTabView: View {
                     // MARK: - 알림 설정
                     SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
                         .onChange(of: notificationsEnabled) { isOn in
-                            if isOn {
-                                //NotificationManager.shared.removeChallenge(challenge.id)
-                                statsVM.registerNotificationsIfNeeded()
-                            } else {
-                                NotificationManager.shared.removeAll()
+                            NotificationManager.shared.handleToggleChanged(
+                                isOn: isOn,
+                                onDenied: {
+                                    showPermissionAlert = true
+                                    notificationsEnabled = false
+                                },
+                                onGranted: {
+                                    statsVM.registerNotificationsIfNeeded()
+                                }
+                            )
+                        }
+                        .alert("알림이 꺼져있습니다",
+                               isPresented: $showPermissionAlert) {
+                            Button("설정으로 이동") {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
                             }
+                            Button("취소", role: .cancel) {}
+                        } message: {
+                            Text("알림을 사용하려면 iOS 설정에서 권한을 허용해 주세요.")
                         }
                         .padding(.horizontal)
 
@@ -117,12 +132,28 @@ struct SettingsTabView: View {
                 }
                 .padding(.top, 20)
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
             .background(themeManager.currentTheme.backgroundColor.opacity(0.1))
             .onAppear {
                 statsVM.loadStatistics()
                 statsVM.loadUserProfile()
+                syncNotificationToggleState()
+            }
+        }
+    }
+    func syncNotificationToggleState() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                switch settings.authorizationStatus {
+                case .denied, .notDetermined:
+                    notificationsEnabled = false
+                case .authorized, .provisional:
+                    notificationsEnabled = true
+                default:
+                    notificationsEnabled = false
+                }
             }
         }
     }

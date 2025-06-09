@@ -48,29 +48,32 @@ struct StatisticsView: View {
         }
     }
 
+
     func calculateCurrentStreak() -> Int {
         let calendar = Calendar.current
-        let sortedLogs = challengeLogs
+        let today = calendar.startOfDay(for: Date())
+
+        // 완료된 로그를 날짜 기준으로 오름차순 정렬
+        let sortedDates = challengeLogs
             .filter { $0.completed }
-            .sorted(by: { $0.date > $1.date })
+            .map { calendar.startOfDay(for: $0.date) }
+            .sorted()
 
         var streak = 0
-        var currentDate = Date()
+        var expectedDate = today
 
-        for log in sortedLogs {
-            if calendar.isDate(log.date, inSameDayAs: currentDate) {
+        for date in sortedDates.reversed() {
+            if calendar.isDate(date, inSameDayAs: expectedDate) {
                 streak += 1
-                currentDate = calendar.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
-            } else if calendar.isDate(log.date, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: currentDate)!) {
-                streak += 1
-                currentDate = calendar.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
-            } else {
+                expectedDate = calendar.date(byAdding: .day, value: -1, to: expectedDate)!
+            } else if date < expectedDate {
                 break
             }
         }
 
         return streak
     }
+
 
     // MARK: - Category Success Rate
     var categorySuccessRateChart: some View {
