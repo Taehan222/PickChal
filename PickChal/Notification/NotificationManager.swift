@@ -17,6 +17,36 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             print(granted ? "알림 허용됨" : "알림 거부됨")
         }
     }
+    func handleToggleChanged(
+            isOn: Bool,
+            onDenied: @escaping () -> Void,
+            onGranted: @escaping () -> Void
+        ) {
+            if isOn {
+                UNUserNotificationCenter.current().getNotificationSettings { settings in
+                    DispatchQueue.main.async {
+                        switch settings.authorizationStatus {
+                        case .authorized, .provisional:
+                            onGranted()
+                        case .denied:
+                            onDenied()
+                        case .notDetermined:
+                            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                                DispatchQueue.main.async {
+                                    granted ? onGranted() : onDenied()
+                                }
+                            }
+                        default:
+                            onDenied()
+                        }
+                    }
+                }
+            } else {
+                // 알림 비활성화
+                removeAll()
+            }
+        }
+    
 
     // MARK: - 챌린지 알림 등록 (매일 반복)
     func scheduleChallenge(_ challenge: ChallengeModel, notificationsEnabled: Bool, increaseBadge: Bool = true) {
