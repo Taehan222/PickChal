@@ -14,7 +14,6 @@ struct RecommendationTabView: View {
     @EnvironmentObject var tabManager: TabSelectionManager
     @StateObject private var viewModel = RecommendationViewModel()
     
-    @State private var showCards: [Bool] = []
     @State private var selectedChallenge: RecommendationModel? = nil
     @State private var showOnboardingGoal = false
     @State private var userGoal: String = ""
@@ -30,10 +29,7 @@ struct RecommendationTabView: View {
                 .navigationTitle("챌린지 추천")
                 .sheet(item: $selectedChallenge) { challenge in
                     ChallengeDetailModalView(challenge: challenge) {
-                        if let index = viewModel.recommendations.firstIndex(where: { $0.id == challenge.id }) {
-                            viewModel.recommendations.remove(at: index)
-                            showCards.remove(at: index)
-                        }
+                        viewModel.acceptChallenge(challenge)
                         selectedChallenge = nil
                     }
                 }
@@ -115,7 +111,6 @@ struct RecommendationTabView: View {
     
     private func resetState() {
         viewModel.recommendations = []
-        showCards = []
         selectedChallenge = nil
         showOnboardingGoal = false
         userGoal = ""
