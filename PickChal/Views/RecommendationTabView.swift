@@ -72,6 +72,7 @@ struct RecommendationTabView: View {
                     }
                 }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
         .overlay(
             Group {
