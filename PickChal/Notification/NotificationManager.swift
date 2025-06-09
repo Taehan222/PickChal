@@ -21,9 +21,11 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - 챌린지 알림 등록 (매일 반복)
     func scheduleChallenge(_ challenge: ChallengeModel, notificationsEnabled: Bool, increaseBadge: Bool = true) {
         guard notificationsEnabled else {
-            print("🔕 알림 꺼져있어서 등록 안함")
+            //print("알림 꺼져있어서 등록 안함")
             return
         }
+
+       // print("알림 등록 요청: \(challenge.title), 시간: \(challenge.alarmTime)")
 
         let content = UNMutableNotificationContent()
         content.title = "⏰ 챌린지 알림"
@@ -31,17 +33,36 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         content.sound = .default
 
         if increaseBadge {
-            let badge = nextBadgeCount()
-            content.badge = badge as NSNumber
-            UIApplication.shared.applicationIconBadgeNumber = badge
+            content.badge = 1
         }
 
-        let calendar = Calendar.current
-        let alarmTime = Date().addingTimeInterval(120) // 2분 뒤
-        var components = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
-        //var components = Calendar.current.dateComponents([.hour, .minute], from: challenge.alarmTime)
+        let koreaTZ = TimeZone(identifier: "Asia/Seoul")!
+        var calendar = Calendar.current
+        calendar.timeZone = koreaTZ
+
+        let nowKoreaDate = Date() // 초까지 포함한 현재 시각
+
+        // 알람 시간 기준 DateComponents 생성
+        var components = calendar.dateComponents(in: koreaTZ, from: challenge.alarmTime)
         components.second = 0
         components.nanosecond = nil
+
+        // 트리거용 날짜 생성
+        guard var triggerDate = calendar.date(from: components) else {
+            //print("트리거 날짜 생성 실패")
+            return
+        }
+
+        // 현재 시각보다 트리거 시각이 과거면 → 내일로 보정
+        if triggerDate < nowKoreaDate {
+            if let nextDay = calendar.date(byAdding: .day, value: 1, to: triggerDate) {
+                triggerDate = nextDay
+                components = calendar.dateComponents(in: koreaTZ, from: triggerDate)
+                components.second = 0
+                components.nanosecond = nil
+                //print("오늘은 지났으므로 내일로 보정됨 → \(nextDay)")
+            }
+        }
 
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
 
@@ -53,12 +74,15 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("❌ 알림 등록 실패: \(error.localizedDescription)")
+                //print("알림 등록 실패: \(error.localizedDescription)")
             } else {
-                print("✅ 알림 등록 성공 - \(challenge.title) @ \(components.hour ?? -1):\(components.minute ?? -1)")
+               //print("알림 등록 성공 - \(challenge.title) @ \(components.hour ?? -1):\(components.minute ?? -1)")
+               //print("알림 등록 성공 \(challenge.id.uuidString)")
             }
         }
     }
+
+
 
 
     // MARK: - 오늘 알림 스킵 처리
@@ -74,10 +98,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     }
 
     // MARK: - 테스트 알림 (5초 후)
-    func scheduleImmediateTestNotification() {
+    func scheduleImmediateTestNotification(increaseBadge: Bool = true) {
         let isOn = UserDefaults.standard.bool(forKey: "notificationsEnabled")
         guard isOn else {
-            print("🔕 알림 꺼져있어서 등록 안함")
+            print("알림 꺼져있어서 등록 안함")
             return
         }
 
@@ -92,11 +116,11 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             }
         }
 
-        let badge = nextBadgeCount()
-        content.badge = badge as NSNumber
-        UIApplication.shared.applicationIconBadgeNumber = badge
+        if increaseBadge {
+            content.badge = 1
+        }
 
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
 
         let request = UNNotificationRequest(
             identifier: "TEST",
@@ -106,9 +130,9 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("❌ 테스트 알림 등록 실패: \(error.localizedDescription)")
+                print("테스트 알림 등록 실패: \(error.localizedDescription)")
             } else {
-                print("✅ 테스트 알림 등록 완료 (5초 후 울림)")
+                print("테스트 알림 등록 완료 (5초 후 울림)")
             }
         }
     }
@@ -117,6 +141,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - 개별 챌린지 알림 제거
     func removeChallenge(_ id: UUID) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id.uuidString])
+        //print("개별 알림 제거: \(id.uuidString)")
     }
 
     // MARK: - 전체 알림 제거 + 뱃지 초기화
@@ -169,5 +194,22 @@ extension Date {
         formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: self)
+    }
+}
+extension Challenge {
+    func toModel() -> ChallengeModel {
+        return ChallengeModel(
+            id: self.id ?? UUID(),
+            title: self.title ?? "",
+            subTitle: self.subTitle ?? "",
+            descriptionText: self.descriptionText ?? "",
+            category: self.category ?? "",
+            startDate: self.startDate ?? Date(),
+            endDate: self.endDate ?? Date(),
+            totalCount: Int(self.totalCount),
+            createdAt: self.createdAt ?? Date(),
+            alarmTime: self.alarmTime ?? Date(),
+            isCompleted: self.isCompleted
+        )
     }
 }

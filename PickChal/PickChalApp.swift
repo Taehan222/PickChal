@@ -51,6 +51,8 @@ struct PickChalApp: App {
             .onChange(of: scenePhase) { phase in
                 if phase == .active {
                     NotificationManager.shared.resetBadgeCount()
+                    NotificationManager.shared.setupDelegate()
+                   
                 }
             }
         }

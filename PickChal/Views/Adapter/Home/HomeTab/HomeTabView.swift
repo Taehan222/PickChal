@@ -56,6 +56,7 @@ struct HomeTabView: View {
                    let challenge = log.challenge {
                     let context = CoreDataManager.shared.container.viewContext
                     log.completed = true
+                    NotificationManager.shared.markTodayAlarmAsSkipped(for: challenge.toModel())
 
                     let fetchRequest: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
                     fetchRequest.predicate = NSPredicate(format: "challenge == %@", challenge)
@@ -63,7 +64,12 @@ struct HomeTabView: View {
                         let allLogs = try context.fetch(fetchRequest)
                         let allCompleted = allLogs.allSatisfy { $0.completed }
                         challenge.isCompleted = allCompleted
+                        if(challenge.isCompleted) {
+                            NotificationManager.shared.removeChallenge(challenge.id!)
+                        }
                         try context.save()
+                        
+
                         print("챌린지 완료 상태 업데이트됨")
                     } catch {
                         print("업데이트 실패: \(error.localizedDescription)")

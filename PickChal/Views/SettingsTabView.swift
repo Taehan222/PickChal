@@ -105,6 +105,7 @@ struct SettingsTabView: View {
                     SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
                         .onChange(of: notificationsEnabled) { isOn in
                             if isOn {
+                                //NotificationManager.shared.removeChallenge(challenge.id)
                                 statsVM.registerNotificationsIfNeeded()
                             } else {
                                 NotificationManager.shared.removeAll()

@@ -94,8 +94,17 @@ final class StatisticsViewModel: ObservableObject {
     func registerNotificationsIfNeeded() {
         if UserDefaults.standard.bool(forKey: "notificationsEnabled") {
             for challenge in ongoingChallenges {
-                NotificationManager.shared.scheduleChallenge(challenge,notificationsEnabled: true)
+                let todayKey = "skipAlarm_\(challenge.id.uuidString)_\(Date().todayString)"
+                let skipToday = UserDefaults.standard.bool(forKey: todayKey)
+
+                if !skipToday {
+                    NotificationManager.shared.removeChallenge(challenge.id)
+                    NotificationManager.shared.scheduleChallenge(challenge, notificationsEnabled: true, increaseBadge: false)
+                } else {
+                    print("\(challenge.title) → 오늘은 완료됨 → 알림 등록 생략")
+                }
             }
         }
     }
+
 }
