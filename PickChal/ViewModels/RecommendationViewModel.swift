@@ -15,7 +15,7 @@ class RecommendationViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var containsInvalidRecommendation: Bool = false
 
-    private let chatService = RecommendationChatGPT()
+    private let chatService = RecommendationAlan()//RecommendationChatGPT()
     private var streamingTask: Task<Void, Never>? = nil
     private var acceptedChallengeIDs: Set<UUID> = []
 
