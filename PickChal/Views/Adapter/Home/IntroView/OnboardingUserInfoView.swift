@@ -38,8 +38,8 @@ struct OnboardingUserInfoView: View {
                 }
 
                 HStack(spacing: 20) {
-                    genderButton("여성", imageName: "여자")
-                    genderButton("남성", imageName: "남자")
+                    genderButton("여성", imageName: "woman")
+                    genderButton("남성", imageName: "man")
                 }
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
