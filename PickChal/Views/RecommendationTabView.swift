@@ -21,7 +21,7 @@ struct RecommendationTabView: View {
     @State private var reloadTrigger = UUID()
     
     @FetchRequest(entity: UserProfile.entity(), sortDescriptors: []) private var profiles: FetchedResults<UserProfile>
-    
+    private let chatService = RecommendationAlan()
     var body: some View {
         NavigationView {
             contentView
@@ -37,6 +37,7 @@ struct RecommendationTabView: View {
                     if tabManager.selectedTab == AppTab.recommend.rawValue {
                         showOnboardingGoal = true
                     }
+                    chatService.resetAlanState()
                 }
                 .onChange(of: tabManager.selectedTab) { newTab in
                     if newTab == AppTab.recommend.rawValue {
