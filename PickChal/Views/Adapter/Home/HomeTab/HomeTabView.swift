@@ -17,7 +17,8 @@ struct HomeTabView: View {
         VStack(spacing: 15) {
             CalendarView(selectedDate: $selectedDate, calendarHeight: $calendarHeight)
                 .frame(height: calendarHeight)
-
+            
+//            showButton: Calendar.current.isDateInToday(selectedDate) 기존코드
             ScrollView {
                 VStack(spacing: 16) {
                     let logsForDate = logs.filter { Calendar.current.isDate($0.date ?? Date(), inSameDayAs: selectedDate) }
@@ -28,7 +29,7 @@ struct HomeTabView: View {
                         emptyMessage: "진행중인 챌린지가 없습니다.",
                         icon: "checkmark.circle",
                         iconColor: .blue,
-                        showButton: Calendar.current.isDateInToday(selectedDate)
+                        showButton: true // 임시 수정
                     ) { log in
                         tabViewModel.showCompletionAlert(for: log.id ?? UUID())
                     }

@@ -1,8 +1,8 @@
 //
-//  RecommendationViewModel.swift
-//  PickChal
+//  RecommendationViewModel.swift
+//  PickChal
 //
-//  Created by 윤태한 on 5/20/25.
+//  Created by 윤태한 on 5/20/25.
 //
 
 import Foundation
@@ -14,6 +14,7 @@ class RecommendationViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var containsInvalidRecommendation: Bool = false
+    @Published var isUsageLimitExceeded: Bool = false // API 사용량 제한 초과 여부
 
     private let chatService = RecommendationChatGPT()
     private var streamingTask: Task<Void, Never>? = nil
@@ -26,19 +27,22 @@ class RecommendationViewModel: ObservableObject {
         errorMessage = nil
         recommendations = []
         containsInvalidRecommendation = false
+        isUsageLimitExceeded = false
 
         var buffer = ""
 
         streamingTask = Task {
             do {
-                try await chatService.streamRecommend(user: user) { partial in
-                    if Task.isCancelled {
+                try await chatService.streamRecommend(user: user) { [weak self] partial in
+                    guard let self = self, !Task.isCancelled else {
                         return
                     }
+                    
                     buffer += partial
 
                     while let (objectString, rest) = self.extractNextJSONObject(from: buffer) {
                         buffer = rest
+                        
                         if let data = objectString.data(using: .utf8),
                            let model = try? JSONDecoder().decode(RecommendationModel.self, from: data) {
 
@@ -51,14 +55,18 @@ class RecommendationViewModel: ObservableObject {
                             guard !self.acceptedChallengeIDs.contains(model.id) else {
                                 continue
                             }
-
                             self.recommendations.append(model)
                         }
                     }
                 }
             } catch {
                 if !Task.isCancelled {
-                    self.errorMessage = "불러오기 실패: \(error.localizedDescription)"
+                    if let recommendationError = error as? RecommendationError, recommendationError == .usageLimitExceeded {
+                        self.isUsageLimitExceeded = true
+                        self.errorMessage = recommendationError.localizedDescription
+                    } else {
+                        self.errorMessage = "불러오기 실패: \(error.localizedDescription)"
+                    }
                 }
             }
             isLoading = false
@@ -75,6 +83,7 @@ class RecommendationViewModel: ObservableObject {
         errorMessage = nil
         recommendations = []
         containsInvalidRecommendation = false
+        isUsageLimitExceeded = false
     }
 
     func acceptChallenge(_ challenge: RecommendationModel) {

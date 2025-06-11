@@ -1,8 +1,8 @@
 //
-//  RecommendationChatGPT.swift
-//  PickChal
+//  RecommendationChatGPT.swift
+//  PickChal
 //
-//  Created by 윤태한 on 5/20/25.
+//  Created by 윤태한 on 5/20/25.
 //
 
 import Foundation
@@ -14,8 +14,31 @@ class RecommendationChatGPT {
         return key
     }()
     
-    
     private lazy var api = ChatGPTAPI(apiKey: apiKey)
+
+    private let userDefaults = UserDefaults.standard
+    private let maxDailyUsage = 10 // 하루 최대 사용 횟수
+    private let lastUsageResetDateKey = "lastChatGPTUsageResetDate"
+    private let dailyUsageCountKey = "dailyChatGPTUsageCount"
+
+    private func getDailyUsageCount() -> Int {
+        let lastResetDate = userDefaults.object(forKey: lastUsageResetDateKey) as? Date ?? .distantPast
+        let calendar = Calendar.current
+
+        // 날짜가 바뀌면 사용 횟수를 초기화
+        if !calendar.isDateInToday(lastResetDate) {
+            userDefaults.set(Date(), forKey: lastUsageResetDateKey)
+            userDefaults.set(0, forKey: dailyUsageCountKey)
+            return 0
+        } else {
+            return userDefaults.integer(forKey: dailyUsageCountKey)
+        }
+    }
+
+    private func incrementDailyUsageCount() {
+        let currentCount = getDailyUsageCount()
+        userDefaults.set(currentCount + 1, forKey: dailyUsageCountKey)
+    }
 
     private func encodeUser(_ user: UserModel) throws -> String {
         let dict: [String: Any] = [
@@ -29,6 +52,14 @@ class RecommendationChatGPT {
     }
 
     func streamRecommend(user: UserModel, onReceive: @escaping (String) async -> Void) async throws {
+        let currentUsage = getDailyUsageCount()
+        if currentUsage > maxDailyUsage {
+            throw RecommendationError.usageLimitExceeded
+        }
+
+        // API 호출 전 사용 횟수 증가
+        incrementDailyUsageCount()
+
         // 임시 더미데이터
         let mockJSON = """
             [
@@ -45,7 +76,6 @@ class RecommendationChatGPT {
               }
             ]
             """
-        // return mockJSON
         
         let userJSON = try encodeUser(user)
         let prompt = """
@@ -74,9 +104,19 @@ class RecommendationChatGPT {
         사용자 정보: \(userJSON)
         """
         
-        
         for try await message in await try api.sendMessageStream(text: prompt) {
             await onReceive(message)
+        }
+    }
+}
+
+enum RecommendationError: Error, LocalizedError {
+    case usageLimitExceeded
+
+    var errorDescription: String? {
+        switch self {
+        case .usageLimitExceeded:
+            return "챌린지 추천 기능 제한 횟수를 초과했습니다. 내일 다시 시도해주세요."
         }
     }
 }
