@@ -57,7 +57,7 @@ struct HomeTabView: View {
                    let challenge = log.challenge {
                     let context = CoreDataManager.shared.container.viewContext
                     log.completed = true
-                    NotificationManager.shared.markTodayAlarmAsSkipped(for: challenge.toModel())
+                    //NotificationManager.shared.markTodayAlarmAsSkipped(for: challenge.toModel())
 
                     let fetchRequest: NSFetchRequest<ChallengeLog> = ChallengeLog.fetchRequest()
                     fetchRequest.predicate = NSPredicate(format: "challenge == %@", challenge)
@@ -69,6 +69,7 @@ struct HomeTabView: View {
                             NotificationManager.shared.removeChallenge(challenge.id!)
                         }
                         try context.save()
+                        NotificationManager.shared.skipTodayAlarm(for: challenge.toModel())
                         
 
                         print("챌린지 완료 상태 업데이트됨")

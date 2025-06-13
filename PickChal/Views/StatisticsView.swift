@@ -117,6 +117,7 @@ struct StatisticsView: View {
             let rate = total > 0 ? Int((Double(completed) / Double(total)) * 100) : 0
             return CategorySuccess(category: category, successRate: rate)
         }
+        .sorted { $0.category < $1.category }
     }
 
     // MARK: - Monthly Success Count

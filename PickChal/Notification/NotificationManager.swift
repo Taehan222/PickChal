@@ -67,7 +67,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let now = Date()
         let nowInKorea = now.addingTimeInterval(TimeInterval(koreaTZ.secondsFromGMT(for: now)))
 
-        // 오늘 기준 시간 계산
         var components = calendar.dateComponents([.hour, .minute], from: challenge.alarmTime)
         components.second = 0
 
@@ -75,28 +74,31 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             return
         }
 
-        // 오늘 시간이 안 지났다면 오늘 한 번 울리기 (repeats: false)
+        // 중복 알림 방지 로직
         if todayTriggerDate > nowInKorea {
             let onceTrigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-
             let onceRequest = UNNotificationRequest(
                 identifier: "\(challenge.id.uuidString)_today",
                 content: content,
                 trigger: onceTrigger
             )
             UNUserNotificationCenter.current().add(onceRequest)
+        } else {
+            let repeatTrigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+            let repeatRequest = UNNotificationRequest(
+                identifier: "\(challenge.id.uuidString)_repeat",
+                content: content,
+                trigger: repeatTrigger
+            )
+            UNUserNotificationCenter.current().add(repeatRequest)
         }
 
-        // 매일 반복 알람은 무조건 등록 (내일부터 시작됨)
-        let repeatTrigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-        let repeatRequest = UNNotificationRequest(
-            identifier: "\(challenge.id.uuidString)_repeat",
-            content: content,
-            trigger: repeatTrigger
-        )
-        UNUserNotificationCenter.current().add(repeatRequest)
-
-        print("알림 등록 완료: \(challenge.title) - 오늘 알림: \(todayTriggerDate > nowInKorea), 반복 알림 등록됨")
+        // (선택) 디버깅 출력
+        let formatter = DateFormatter()
+        formatter.timeZone = koreaTZ
+        formatter.dateFormat = "HH:mm"
+        let formattedTime = formatter.string(from: todayTriggerDate)
+        print("알림 등록 완료: \(challenge.title) - 울리는 시각: \(formattedTime)")
     }
 
 
@@ -105,6 +107,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - 오늘 알림 스킵 처리
     func markTodayAlarmAsSkipped(for challenge: ChallengeModel) {
         let key = skipKey(for: challenge.id)
+        print("오늘 알림 스킵 등록됨 → \(key)")
         UserDefaults.standard.set(true, forKey: key)
     }
 
@@ -191,8 +194,13 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         
         let id = response.notification.request.identifier
-        let todayKey = "skipAlarm_\(id)_\(Date().todayString)"
         
+        let challengeID = id
+            .replacingOccurrences(of: "_today", with: "")
+            .replacingOccurrences(of: "_repeat", with: "")
+
+        let todayKey = "skipAlarm_\(challengeID)_\(Date().todayString)"
+
         if UserDefaults.standard.bool(forKey: todayKey) {
             print("오늘은 챌린지 완료됨 → 알림 무시")
             completionHandler()
@@ -205,6 +213,20 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         completionHandler()
     }
 }
+extension NotificationManager {
+    /// 오늘 알림을 스킵 처리하고, `_today` 알림을 제거합니다.
+    func skipTodayAlarm(for challenge: ChallengeModel) {
+        let key = skipKey(for: challenge.id)
+        UserDefaults.standard.set(true, forKey: key)
+        print(" 오늘 알림 스킵 등록됨 → \(key)")
+
+        // 오늘 울리는 일회성 알림 제거
+        let todayID = "\(challenge.id.uuidString)_today"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [todayID])
+        print("오늘 알림 제거됨 → ID: \(todayID)")
+    }
+}
+
 extension Date {
     var todayString: String {
         let formatter = DateFormatter()
