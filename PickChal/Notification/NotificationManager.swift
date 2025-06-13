@@ -50,18 +50,12 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - 챌린지 알림 등록 (매일 반복)
     func scheduleChallenge(_ challenge: ChallengeModel, notificationsEnabled: Bool, increaseBadge: Bool = true) {
-        guard notificationsEnabled else {
-            //print("알림 꺼져있어서 등록 안함")
-            return
-        }
-
-       // print("알림 등록 요청: \(challenge.title), 시간: \(challenge.alarmTime)")
+        guard notificationsEnabled else { return }
 
         let content = UNMutableNotificationContent()
         content.title = "⏰ 챌린지 알림"
         content.body = "'\(challenge.title)' 챌린지 시간이에요!"
         content.sound = .default
-
         if increaseBadge {
             content.badge = 1
         }
@@ -70,46 +64,39 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         var calendar = Calendar.current
         calendar.timeZone = koreaTZ
 
-        let nowKoreaDate = Date() // 초까지 포함한 현재 시각
+        let now = Date()
+        let nowInKorea = now.addingTimeInterval(TimeInterval(koreaTZ.secondsFromGMT(for: now)))
 
-        // 알람 시간 기준 DateComponents 생성
-        var components = calendar.dateComponents(in: koreaTZ, from: challenge.alarmTime)
+        // 오늘 기준 시간 계산
+        var components = calendar.dateComponents([.hour, .minute], from: challenge.alarmTime)
         components.second = 0
-        components.nanosecond = nil
 
-        // 트리거용 날짜 생성
-        guard var triggerDate = calendar.date(from: components) else {
-            //print("트리거 날짜 생성 실패")
+        guard let todayTriggerDate = calendar.nextDate(after: nowInKorea, matching: components, matchingPolicy: .nextTimePreservingSmallerComponents) else {
             return
         }
 
-        // 현재 시각보다 트리거 시각이 과거면 → 내일로 보정
-        if triggerDate < nowKoreaDate {
-            if let nextDay = calendar.date(byAdding: .day, value: 1, to: triggerDate) {
-                triggerDate = nextDay
-                components = calendar.dateComponents(in: koreaTZ, from: triggerDate)
-                components.second = 0
-                components.nanosecond = nil
-                //print("오늘은 지났으므로 내일로 보정됨 → \(nextDay)")
-            }
+        // 오늘 시간이 안 지났다면 오늘 한 번 울리기 (repeats: false)
+        if todayTriggerDate > nowInKorea {
+            let onceTrigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+
+            let onceRequest = UNNotificationRequest(
+                identifier: "\(challenge.id.uuidString)_today",
+                content: content,
+                trigger: onceTrigger
+            )
+            UNUserNotificationCenter.current().add(onceRequest)
         }
 
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-
-        let request = UNNotificationRequest(
-            identifier: challenge.id.uuidString,
+        // 매일 반복 알람은 무조건 등록 (내일부터 시작됨)
+        let repeatTrigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let repeatRequest = UNNotificationRequest(
+            identifier: "\(challenge.id.uuidString)_repeat",
             content: content,
-            trigger: trigger
+            trigger: repeatTrigger
         )
+        UNUserNotificationCenter.current().add(repeatRequest)
 
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                //print("알림 등록 실패: \(error.localizedDescription)")
-            } else {
-               //print("알림 등록 성공 - \(challenge.title) @ \(components.hour ?? -1):\(components.minute ?? -1)")
-               //print("알림 등록 성공 \(challenge.id.uuidString)")
-            }
-        }
+        print("알림 등록 완료: \(challenge.title) - 오늘 알림: \(todayTriggerDate > nowInKorea), 반복 알림 등록됨")
     }
 
 

@@ -38,7 +38,7 @@ struct ContentView: View {
         }
         .onAppear {
             statsVM.loadStatistics()
-            statsVM.registerNotificationsIfNeeded()
+            //statsVM.registerNotificationsIfNeeded()
         }
         
         //.accentColor(Theme.Colors.primary)
