@@ -86,7 +86,7 @@ class RecommendationChatGPT {
         - 출력은 반드시 JSON 배열 형식만으로 출력하세요.
         - JSON 외에는 절대 아무것도 출력하지 마세요. 주석, 설명, 인사말 등도 포함 금지입니다.
         - 각 챌린지 항목은 다음 필드를 포함해야 합니다:
-          - id, title, subTitle, descriptionText, category, alarmTime(), iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days(예: 3,5,7)
+          - id, title, subTitle, descriptionText, category, alarmTime, iconName(SF Symbol), iconColor(SF Symbol 색상 - 예: blue, orange, green 등), days(예: 3,5,7)
         - descriptionText는 다음 형식으로 작성하세요:
           - 첫날: ~ /
           - 둘째 날: ~ /
