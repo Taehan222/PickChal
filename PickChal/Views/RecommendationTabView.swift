@@ -1,8 +1,8 @@
 //
-//  RecommendationTabView.swift
-//  SampleApp03
+//  RecommendationTabView.swift
+//  SampleApp03
 //
-//  Created by 윤태한 on 5/16/25.
+//  Created by 윤태한 on 5/16/25.
 //
 
 import SwiftUI
@@ -18,6 +18,7 @@ struct RecommendationTabView: View {
     @State private var showOnboardingGoal = false
     @State private var userGoal: String = ""
     @State private var showResetMessage = false
+    @State private var showUsageLimitAlert = false
     @State private var reloadTrigger = UUID()
     
     @FetchRequest(entity: UserProfile.entity(), sortDescriptors: []) private var profiles: FetchedResults<UserProfile>
@@ -52,6 +53,12 @@ struct RecommendationTabView: View {
                         viewModel.containsInvalidRecommendation = false
                     }
                 }
+                .onChange(of: viewModel.isUsageLimitExceeded) { isExceeded in
+                    if isExceeded {
+                        showUsageLimitAlert = true
+                        viewModel.isUsageLimitExceeded = false
+                    }
+                }
                 .fullScreenCover(isPresented: $showOnboardingGoal) {
                     ZStack(alignment: .topTrailing) {
                         OnboardingGoalViewWrapper(isPresented: $showOnboardingGoal) { goal in
@@ -72,6 +79,7 @@ struct RecommendationTabView: View {
                     }
                 }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .background(Theme.Colors.background.edgesIgnoringSafeArea(.all))
         .overlay(
             Group {
@@ -105,6 +113,34 @@ struct RecommendationTabView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(1)
                 }
+                if showUsageLimitAlert {
+                    VStack {
+                        HStack {
+                            Text("챌린지 추천은 하루에 10회까지만 가능합니다. 내일 다시 시도해주세요.")
+                                .foregroundColor(.white)
+                                .padding(.leading, 16)
+                            Spacer()
+                            Button(action: {
+                                withAnimation {
+                                    showUsageLimitAlert = false
+                                }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                                    .padding(.trailing, 16)
+                            }
+                        }
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.85))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                    .padding(.top, 100)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(1)
+                }
             }
         )
     }
@@ -115,6 +151,7 @@ struct RecommendationTabView: View {
         showOnboardingGoal = false
         userGoal = ""
         showResetMessage = false
+        showUsageLimitAlert = false
         reloadTrigger = UUID()
     }
     
@@ -195,3 +232,4 @@ struct RecommendationTabView: View {
     RecommendationTabView()
         .environmentObject(TabSelectionManager.shared)
 }
+

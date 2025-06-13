@@ -91,15 +91,15 @@ struct SettingsTabView: View {
                     .padding(.horizontal)
 
                     // MARK: - 테스트 알림
-                    SettingsCard {
-                        Button("테스트 알림 보내기") {
-                            NotificationManager.shared.scheduleImmediateTestNotification()
-                        }
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                    }
-                    .padding(.horizontal)
+//                    SettingsCard {
+//                        Button("테스트 알림 보내기") {
+//                            NotificationManager.shared.scheduleImmediateTestNotification()
+//                        }
+//                        .font(.headline)
+//                        .padding()
+//                        .frame(maxWidth: .infinity)
+//                    }
+//                    .padding(.horizontal)
 
                     // MARK: - 알림 설정
                     SettingsToggleRow(title: "알림 설정", isOn: $notificationsEnabled)
@@ -132,7 +132,6 @@ struct SettingsTabView: View {
                 }
                 .padding(.top, 20)
             }
-            .navigationViewStyle(StackNavigationViewStyle())
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
             .background(themeManager.currentTheme.backgroundColor.opacity(0.1))
@@ -142,6 +141,7 @@ struct SettingsTabView: View {
                 syncNotificationToggleState()
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     func syncNotificationToggleState() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
